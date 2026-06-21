@@ -1,0 +1,56 @@
+# Supabase config for Fotozada.
+# Docs: https://supabase.com/docs/guides/cli/config
+project_id = "fotozada"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = false
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+# 10 MiB per uploaded photo is plenty for phone shots.
+file_size_limit = "10MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = false          # admins are created manually; no public sign-up.
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+
+# --- Edge Functions -------------------------------------------------------
+# These endpoints are public on purpose. Security lives INSIDE the functions
+# (idempotency + per-batch sheet limit) and they use the service-role key
+# internally, so we do not gate them on a caller JWT.
+[functions.request-upload]
+verify_jwt = false
+
+[functions.create-print-job]
+verify_jwt = false
+
+[functions.simulate-printer]
+# Only advances already-queued jobs; harmless to trigger. Kept open so the
+# admin "simular agora" button and a cron ping can both reach it.
+verify_jwt = false
