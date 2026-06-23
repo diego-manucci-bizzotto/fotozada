@@ -1,0 +1,148 @@
+import { useCallback, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Cropper from "react-easy-crop";
+import type { Area } from "react-easy-crop";
+import { Camera, ChevronLeft, RotateCcw, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { canvasToBlob, cropToCell } from "../../print/lib/compose";
+import type { LayoutDef } from "../../print/types";
+import type { FrameData } from "../types";
+
+export function PhotoStep({
+  layout,
+  onDone,
+  onBack,
+}: {
+  layout: LayoutDef;
+  onDone: (frames: FrameData[]) => void;
+  onBack: () => void;
+}) {
+  const [frames, setFrames] = useState<FrameData[]>([]);
+  const current = frames.length;
+  const [pickedSrc, setPickedSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [areaPixels, setAreaPixels] = useState<Area | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const onCropComplete = useCallback((_a: Area, px: Area) => setAreaPixels(px), []);
+
+  function pickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (pickedSrc) URL.revokeObjectURL(pickedSrc);
+    setPickedSrc(URL.createObjectURL(file));
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setAreaPixels(null);
+  }
+
+  async function confirmCrop() {
+    if (!pickedSrc || !areaPixels) return;
+    setBusy(true);
+    const cell = layout.cells[current];
+    const canvas = await cropToCell(pickedSrc, areaPixels, cell.w, cell.h);
+    const blob = await canvasToBlob(canvas, "image/jpeg", 0.92);
+    const next = [
+      ...frames,
+      { crop: areaPixels, canvas, blob, width: canvas.width, height: canvas.height },
+    ];
+    URL.revokeObjectURL(pickedSrc);
+    setPickedSrc(null);
+    setAreaPixels(null);
+    setBusy(false);
+    setFrames(next);
+    if (next.length === layout.photos) onDone(next);
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 60 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -60 }}
+      transition={{ type: "spring", stiffness: 300, damping: 28 }}
+      className="flex flex-1 flex-col gap-5 p-6"
+    >
+      <button onClick={onBack} className="flex items-center gap-1 self-start text-sm text-white/60">
+        <ChevronLeft className="h-4 w-4" /> Voltar
+      </button>
+
+      <div className="text-center">
+        <h2 className="flex items-center justify-center gap-2 text-lg font-bold text-white">
+          <Camera className="h-5 w-5 text-amber-400" />
+          Suas fotos
+        </h2>
+        <p className="mt-1 text-sm text-white/50">
+          {!pickedSrc ? "Escolha uma foto da galeria" : "Ajuste o enquadramento"}
+        </p>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {!pickedSrc ? (
+          <motion.label
+            key="upload"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex flex-1 cursor-pointer flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-white/20 bg-white/5"
+          >
+            <div className="animate-float flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20">
+              <Upload className="h-8 w-8 text-amber-400" />
+            </div>
+            <span className="text-base font-semibold text-amber-400">Escolher foto</span>
+            <span className="text-xs text-white/40">Toque para abrir a galeria</span>
+            <input type="file" accept="image/*" hidden onChange={pickFile} />
+          </motion.label>
+        ) : (
+          <motion.div
+            key="crop"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-1 flex-col gap-4"
+          >
+            <div className="relative flex-1 overflow-hidden rounded-2xl bg-black/40">
+              <Cropper
+                image={pickedSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={layout.cellAspect}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <Slider
+              value={[zoom]}
+              min={1}
+              max={3}
+              step={0.01}
+              onValueChange={([z]) => setZoom(z)}
+              className="[&_[role=slider]]:bg-amber-500"
+            />
+            <div className="flex gap-3">
+              <Button asChild variant="outline" className="flex-1 rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+                <label>
+                  <RotateCcw className="mr-1.5 h-4 w-4" />
+                  Trocar
+                  <input type="file" accept="image/*" hidden onChange={pickFile} />
+                </label>
+              </Button>
+              <motion.div className="flex-1" whileTap={{ scale: 0.97 }}>
+                <Button
+                  className="w-full rounded-xl bg-amber-500 text-white hover:bg-amber-600"
+                  disabled={busy || !areaPixels}
+                  onClick={confirmCrop}
+                >
+                  {current + 1 < layout.photos ? "Próxima" : "Concluir"}
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
