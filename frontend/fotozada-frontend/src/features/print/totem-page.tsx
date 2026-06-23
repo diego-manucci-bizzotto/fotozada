@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { newId } from "@/lib/device";
 import { useTotemSettings } from "./hooks/use-totem-settings";
@@ -87,87 +88,145 @@ export function TotemPage() {
     setMode("tabs");
   }
 
-  if (mode === "wizard") {
-    return (
-      <div className="flex min-h-svh flex-col bg-background">
-        <div className="mx-auto w-full max-w-md flex-1 p-4">
-          <PrintWizard
-            remainingSheets={remaining}
-            onAdd={addItem}
-            onCancel={() => setMode("tabs")}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      {/* Header */}
-      <header className="border-b bg-primary px-4 py-3">
-        <div className="mx-auto flex max-w-md items-center gap-2">
-          <img src="/logo.svg" alt="Fotozada" className="h-7" />
-          <span className="text-lg font-bold text-primary-foreground">Fotozada</span>
-        </div>
-      </header>
-
-      {/* Tabs */}
-      <div className="mx-auto w-full max-w-md flex-1 px-4 pt-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="galeria" className="flex-1">
-              Galeria{items.length > 0 && ` (${items.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="fila" className="flex-1">
-              Fila{result ? " ·" : ""}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="galeria" className="mt-4">
-            <GalleryTab
-              items={items}
-              maxSheets={maxSheets}
-              sheets={sheets}
-              onRemove={removeItem}
-            />
-          </TabsContent>
-
-          <TabsContent value="fila" className="mt-4">
-            <QueueTab result={result} items={items} onNew={newOrder} />
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* FAB: adicionar fotos */}
-      <button
-        className="fixed bottom-6 right-6 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-40 disabled:shadow-none"
-        style={{ bottom: items.length > 0 ? "5rem" : "1.5rem" }}
-        disabled={remaining < 1}
-        onClick={() => setMode("wizard")}
-        aria-label="Adicionar fotos"
-      >
-        <svg className="h-6 w-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-      </button>
-
-      {/* Barra "Imprimir" — aparece só quando tem fotos */}
-      {items.length > 0 && (
-        <div className="sticky bottom-0 border-t bg-white px-4 py-3">
-          <div className="mx-auto max-w-md">
-            <button
-              className="w-full rounded-xl bg-primary px-4 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
-              disabled={submit.isPending}
-              onClick={print}
+      <AnimatePresence mode="wait" initial={false}>
+        {mode === "wizard" ? (
+          <motion.div
+            key="wizard"
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="flex min-h-svh flex-col"
+          >
+            <div className="mx-auto w-full max-w-md flex-1 p-4">
+              <PrintWizard
+                remainingSheets={remaining}
+                onAdd={addItem}
+                onCancel={() => setMode("tabs")}
+              />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="tabs"
+            initial={{ opacity: 0, x: -60 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 60 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="flex min-h-svh flex-col"
+          >
+            {/* Header */}
+            <motion.header
+              initial={{ y: -40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
+              className="relative overflow-hidden border-b bg-gradient-to-r from-primary via-primary to-blue-700 px-4 py-3"
             >
-              {submit.isPending
-                ? "Enviando…"
-                : `Imprimir ${sheets} folha${sheets === 1 ? "" : "s"}`}
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.15),transparent_50%)]" />
+              <div className="relative mx-auto flex max-w-md items-center gap-2">
+                <motion.img
+                  src="/logo.svg"
+                  alt="Fotozada"
+                  className="h-7"
+                  whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
+                />
+                <span className="text-lg font-bold tracking-tight text-primary-foreground">
+                  Fotozada
+                </span>
+              </div>
+            </motion.header>
+
+            {/* Tabs */}
+            <div className="mx-auto w-full max-w-md flex-1 px-4 pt-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full">
+                  <TabsTrigger value="galeria" className="flex-1">
+                    Galeria{items.length > 0 && ` (${items.length})`}
+                  </TabsTrigger>
+                  <TabsTrigger value="fila" className="flex-1">
+                    Fila{result ? " ·" : ""}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="galeria" className="mt-4">
+                  <motion.div
+                    key="galeria-content"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <GalleryTab
+                      items={items}
+                      maxSheets={maxSheets}
+                      sheets={sheets}
+                      onRemove={removeItem}
+                    />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="fila" className="mt-4">
+                  <motion.div
+                    key="fila-content"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                  >
+                    <QueueTab result={result} items={items} onNew={newOrder} />
+                  </motion.div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* FAB: adicionar fotos */}
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15, delay: 0.3 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="fixed right-6 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 shadow-lg shadow-primary/30 disabled:opacity-40 disabled:shadow-none"
+              style={{ bottom: items.length > 0 ? "5rem" : "1.5rem" }}
+              disabled={remaining < 1}
+              onClick={() => setMode("wizard")}
+              aria-label="Adicionar fotos"
+            >
+              <svg className="h-6 w-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </motion.button>
+
+            {/* Barra "Imprimir" */}
+            <AnimatePresence>
+              {items.length > 0 && (
+                <motion.div
+                  initial={{ y: 80, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 80, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                  className="sticky bottom-0 border-t bg-white/80 px-4 py-3 backdrop-blur-lg"
+                >
+                  <div className="mx-auto max-w-md">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-700 px-4 py-3.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition-colors disabled:opacity-40"
+                      disabled={submit.isPending}
+                      onClick={print}
+                    >
+                      {submit.isPending
+                        ? "Enviando…"
+                        : `Imprimir ${sheets} folha${sheets === 1 ? "" : "s"}`}
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

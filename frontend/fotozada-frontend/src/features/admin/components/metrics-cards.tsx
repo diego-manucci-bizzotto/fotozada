@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Job } from "../types";
 
@@ -31,13 +32,22 @@ export function MetricsCards({ jobs }: { jobs: Job[] }) {
   ];
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {cards.map((c) => (
-        <Card key={c.label} className="gap-0 py-4">
-          <CardContent className="px-4">
-            <div className="text-2xl font-bold">{c.value}</div>
-            <div className="text-xs text-muted-foreground">{c.label}</div>
-          </CardContent>
-        </Card>
+      {cards.map((c, i) => (
+        <motion.div
+          key={c.label}
+          initial={{ opacity: 0, y: 16, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: i * 0.06, type: "spring", stiffness: 300, damping: 25 }}
+        >
+          <Card className="gap-0 py-4 transition-shadow hover:shadow-md">
+            <CardContent className="px-4">
+              <div className="bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-2xl font-bold text-transparent">
+                {c.value}
+              </div>
+              <div className="text-xs text-muted-foreground">{c.label}</div>
+            </CardContent>
+          </Card>
+        </motion.div>
       ))}
     </div>
   );

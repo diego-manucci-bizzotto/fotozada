@@ -1,7 +1,8 @@
 import { useCallback, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Cropper from "react-easy-crop";
 import type { Area } from "react-easy-crop";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Upload, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import type { CropPixels, LayoutDef } from "../types";
@@ -71,52 +72,75 @@ export function StepPhotos({ layout, onDone, onBack }: Props) {
         </p>
       </div>
 
-      {!pickedSrc ? (
-        <div className="grid gap-3">
-          <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/20 bg-primary/[0.03] py-12 transition-colors hover:border-primary/40">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-              <Upload className="h-6 w-6 text-primary" />
+      <AnimatePresence mode="wait">
+        {!pickedSrc ? (
+          <motion.div
+            key="picker"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="grid gap-3"
+          >
+            <motion.label
+              whileHover={{ scale: 1.02, borderColor: "var(--primary)" }}
+              whileTap={{ scale: 0.98 }}
+              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-primary/20 bg-gradient-to-b from-primary/[0.05] to-transparent py-12 transition-colors"
+            >
+              <div className="flex h-12 w-12 animate-float items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5">
+                <Camera className="h-6 w-6 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-primary">Escolher foto</span>
+              <input type="file" accept="image/*" hidden onChange={pickFile} />
+            </motion.label>
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="cropper"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="grid gap-4"
+          >
+            <div className="relative h-64 w-full overflow-hidden rounded-xl bg-neutral-900">
+              <Cropper
+                image={pickedSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={layout.cellAspect}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
             </div>
-            <span className="text-sm font-medium text-primary">Escolher foto</span>
-            <input type="file" accept="image/*" hidden onChange={pickFile} />
-          </label>
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className="relative h-64 w-full overflow-hidden rounded-xl bg-neutral-900">
-            <Cropper
-              image={pickedSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={layout.cellAspect}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
+            <Slider
+              value={[zoom]}
+              min={1}
+              max={3}
+              step={0.01}
+              onValueChange={([z]) => setZoom(z)}
             />
-          </div>
-          <Slider
-            value={[zoom]}
-            min={1}
-            max={3}
-            step={0.01}
-            onValueChange={([z]) => setZoom(z)}
-          />
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="flex-1 rounded-xl">
-              <label>
-                Trocar
-                <input type="file" accept="image/*" hidden onChange={pickFile} />
-              </label>
-            </Button>
-            <Button className="flex-1 rounded-xl" disabled={busy || !areaPixels} onClick={confirmCrop}>
-              {current + 1 < layout.photos ? "Próxima" : "Concluir"}
-            </Button>
-          </div>
-        </>
-      )}
+            <div className="flex gap-2">
+              <Button asChild variant="outline" className="flex-1 rounded-xl">
+                <label>
+                  <Upload className="mr-1.5 h-4 w-4" />
+                  Trocar
+                  <input type="file" accept="image/*" hidden onChange={pickFile} />
+                </label>
+              </Button>
+              <motion.div className="flex-1" whileTap={{ scale: 0.97 }}>
+                <Button className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-700" disabled={busy || !areaPixels} onClick={confirmCrop}>
+                  {current + 1 < layout.photos ? "Próxima" : "Concluir"}
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
