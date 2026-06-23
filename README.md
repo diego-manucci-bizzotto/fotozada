@@ -23,7 +23,11 @@ status do usuário via Realtime Broadcast  •  /admin via Auth + postgres_chang
 backend/supabase/        # CLI do Supabase: migrations + edge functions
   migrations/            # schema, RLS, storage, RPCs, broadcast, cron
   functions/             # request-upload, create-print-job, simulate-printer
-frontend/fotozada-frontend/   # Vite + React 19 + TS (SPA, deploy na Vercel)
+frontend/fotozada-frontend/   # Vite + React 19 + TS + shadcn/ui + React Query (SPA, Vercel)
+  src/app/                    # providers (React Query) + router
+  src/components/ui/          # shadcn
+  src/features/print/         # fluxo do totem (wizard "Minhas fotos") — rota "/"
+  src/features/admin/         # dashboard — rota "/admin" (só por URL, sem link)
 ```
 
 ## Modelo de dados
@@ -106,6 +110,9 @@ VITE_SUPABASE_ANON_KEY=SUA_ANON_KEY
   ```
 - **Deploy:** importe o diretório `frontend/fotozada-frontend` na Vercel (preset Vite),
   defina as duas envs acima. O `vercel.json` já faz o rewrite SPA para `/admin`.
+- **Admin:** a rota `/admin` **não tem link** em lugar nenhum — abre só digitando a URL
+  (`https://SEU-APP.vercel.app/admin`). Stack do front: shadcn/ui + Tailwind (tema azul/branco,
+  light-only), TanStack React Query, react-hook-form + zod.
 
 ### 4) QR code
 
