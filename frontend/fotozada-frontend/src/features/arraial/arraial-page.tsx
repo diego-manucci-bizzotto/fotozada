@@ -61,10 +61,6 @@ const BADGE_VARIANT: Record<JobStatus, "default" | "secondary" | "destructive" |
   canceled: "destructive",
 };
 
-function Bandeirinhas({ className = "" }: { className?: string }) {
-  return <img src="/bandeirinhas.svg" alt="" className={`pointer-events-none select-none ${className}`} />;
-}
-
 function StepIndicator({ steps, current }: { steps: string[]; current: number }) {
   return (
     <div className="flex items-center justify-center gap-1.5">
@@ -97,13 +93,7 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
       exit={{ opacity: 0, y: -30 }}
       className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center"
     >
-      <motion.div
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-      >
-        <img src="/arraial-mascot.svg" alt="" className="mx-auto h-40 drop-shadow-lg" />
-      </motion.div>
+      <img src="/bandeirinhas.svg" alt="Arraial UNAERP" className="mx-auto w-200 min-w-200 absolute -top-44 pointer-events-none" />
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
@@ -111,12 +101,20 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         transition={{ delay: 0.4 }}
         className="space-y-2"
       >
-        <img src="/arraial-logo.svg" alt="Arraial UNAERP" className="mx-auto h-12" />
+        <img src="/arraial-logo.svg" alt="Arraial UNAERP" className="mx-auto h-64" />
         <p className="text-sm leading-relaxed text-white/80">
           Registre os melhores momentos do arraial!
           <br />
           Escolha suas fotos e leve a recordação impressa.
         </p>
+      </motion.div>
+
+      <motion.div
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+      >
+        <img src="/arraial-mascot.svg" alt="" className="mx-auto h-64 drop-shadow-lg absolute -bottom-24 -right-20" />
       </motion.div>
 
       <motion.div
@@ -133,10 +131,6 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
           Começar
         </motion.button>
       </motion.div>
-
-      <div className="pointer-events-none absolute bottom-0 left-0 h-10 w-full overflow-hidden opacity-30">
-        <Bandeirinhas className="w-full origin-bottom scale-y-[-1]" />
-      </div>
     </motion.div>
   );
 }
@@ -178,7 +172,7 @@ function LayoutStep({
             onClick={() => onSelect(l)}
             className="group relative overflow-hidden rounded-2xl bg-white/10 p-5 text-left backdrop-blur-sm"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 to-amber-500/0 transition-all group-hover:from-amber-500/10 group-hover:to-orange-500/10" />
+            <div className="absolute inset-0 bg-linear-to-r from-amber-500/0 to-amber-500/0 transition-all group-hover:from-amber-500/10 group-hover:to-orange-500/10" />
             <div className="relative flex items-center gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
                 {l.id === "single_10x15" ? (
@@ -256,7 +250,7 @@ function PhotoStep({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="flex flex-1 flex-col gap-5 px-5 pt-4"
+      className="flex flex-1 flex-col gap-5 p-6"
     >
       <button onClick={onBack} className="flex items-center gap-1 self-start text-sm text-white/60">
         <ChevronLeft className="h-4 w-4" /> Voltar
@@ -404,7 +398,7 @@ function ReviewStep({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="flex flex-1 flex-col gap-5 px-5 pt-4"
+      className="flex flex-1 flex-col gap-5 p-6"
     >
       <button onClick={onBack} className="flex items-center gap-1 self-start text-sm text-white/60">
         <ChevronLeft className="h-4 w-4" /> Voltar
@@ -616,25 +610,21 @@ export function ArraialPage() {
   );
 
   return (
-    <div className="relative flex min-h-svh flex-col overflow-hidden bg-gradient-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#1a0a2e]">
-      {/* Decorative top bandeirinhas */}
-      <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 h-12 overflow-hidden">
-        <Bandeirinhas className="w-full" />
+    <div className="relative flex min-h-svh flex-col overflow-hidden bg-linear-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#1a0a2e]">
+      {/* Step indicator (always reserving space to prevent layout shift) */}
+      <div className="relative z-20 pb-2 pt-14 h-12">
+        {step !== "welcome" && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <StepIndicator steps={STEP_NAMES} current={stepIndex} />
+          </motion.div>
+        )}
       </div>
 
-      {/* Step indicator */}
-      {step !== "welcome" && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative z-20 pb-2 pt-14"
-        >
-          <StepIndicator steps={STEP_NAMES} current={stepIndex} />
-        </motion.div>
-      )}
-
       {/* Content */}
-      <div className={`relative z-10 flex flex-1 flex-col ${step === "welcome" ? "pt-16" : ""}`}>
+      <div className={`relative z-10 flex flex-1 flex-col`}>
         <AnimatePresence mode="wait">
           {step === "welcome" && (
             <WelcomeStep key="welcome" onStart={() => setStep("layout")} />
