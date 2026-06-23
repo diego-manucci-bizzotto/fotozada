@@ -91,79 +91,45 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -30 }}
-      className="relative flex flex-1 flex-col items-center justify-center gap-8 px-6 text-center"
+      className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center"
     >
-      {/* Bandeirinhas decoration at top */}
+      <img src="/bandeirinhas.svg" alt="Arraial UNAERP" className="mx-auto w-200 min-w-200 absolute -top-44 pointer-events-none" />
+
       <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.6 }}
-        className="pointer-events-none absolute top-0 left-0 right-0 h-16 overflow-hidden"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="space-y-2"
       >
-        <img src="/bandeirinhas.svg" alt="" className="w-full h-full object-cover" />
+        <img src="/arraial-logo.svg" alt="Arraial UNAERP" className="mx-auto h-64" />
+        <p className="text-sm leading-relaxed text-white/80">
+          Registre os melhores momentos do arraial!
+          <br />
+          Escolha suas fotos e leve a recordação impressa.
+        </p>
       </motion.div>
 
-      {/* Mascot floating top-right */}
       <motion.div
-        initial={{ scale: 0, opacity: 0 }}
+        initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 150, damping: 12, delay: 0.2 }}
-        className="pointer-events-none absolute top-20 right-0 w-32 h-40"
+        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
       >
-        <img src="/arraial-mascot.svg" alt="" className="w-full h-full object-contain drop-shadow-xl" />
+        <img src="/arraial-mascot.svg" alt="" className="mx-auto h-64 drop-shadow-lg absolute -bottom-24 -right-20" />
       </motion.div>
 
-      {/* Main content */}
-      <div className="mt-16 flex flex-col items-center gap-6">
-        {/* Logo */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-        >
-          <img src="/arraial-logo.svg" alt="Arraial UNAERP" className="h-20 drop-shadow-md" />
-        </motion.div>
-
-        {/* Description text */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-xs"
-        >
-          <p className="text-base leading-relaxed text-white/90">
-            Registre os melhores momentos do arraial!
-            <br />
-            <span className="text-sm text-white/60">Escolha suas fotos e leve a recordação impressa.</span>
-          </p>
-        </motion.div>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="pt-4"
-        >
-          <motion.button
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onStart}
-            className="rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-12 py-3.5 text-base font-bold text-white shadow-lg shadow-amber-500/40 transition-shadow hover:shadow-amber-500/50"
-          >
-            Começar
-          </motion.button>
-        </motion.div>
-      </div>
-
-      {/* UNAERP watermark bottom-left */}
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6 }}
-        className="pointer-events-none absolute bottom-8 left-6 h-12 opacity-40"
       >
-        <img src="/unaerp.png" alt="" className="h-full object-contain" />
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onStart}
+          className="rounded-2xl bg-amber-500 px-10 py-4 text-base font-bold text-white shadow-lg shadow-amber-500/30"
+        >
+          Começar
+        </motion.button>
       </motion.div>
     </motion.div>
   );
