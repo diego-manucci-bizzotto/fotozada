@@ -93,7 +93,7 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
       exit={{ opacity: 0, y: -30 }}
       className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center"
     >
-      <img src="/bandeirinhas.svg" alt="Arraial UNAERP" className="mx-auto w-200 min-w-200 absolute -top-44 pointer-events-none" />
+      <img src="/bandeirinhas.svg" alt="Arraiá UNAERP" className="mx-auto w-200 min-w-200 absolute -top-44 pointer-events-none" />
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
@@ -101,7 +101,7 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         transition={{ delay: 0.4 }}
         className="space-y-2"
       >
-        <img src="/arraial-logo.svg" alt="Arraial UNAERP" className="mx-auto h-64" />
+        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-64" />
         <p className="text-sm leading-relaxed text-white/80">
           Registre os melhores momentos do arraial!
           <br />
