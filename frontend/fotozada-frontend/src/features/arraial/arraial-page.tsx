@@ -91,29 +91,30 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -30 }}
-      className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center pb-32 space-y-2"
+      className="flex flex-1 flex-col items-center justify-center gap-6 px-6 text-center"
     >
-      <motion.div
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-        className="relative"
-      >
-        <img src="/bandeirinhas.svg" alt="Arraial UNAERP" className="mx-auto w-200 min-w-200 absolute -top-72 -left-92 pointer-events-none" />
-      </motion.div>
+      <img src="/bandeirinhas.svg" alt="Arraial UNAERP" className="mx-auto w-200 min-w-200 absolute -top-44 pointer-events-none" />
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
+        className="space-y-2"
       >
         <img src="/arraial-logo.svg" alt="Arraial UNAERP" className="mx-auto h-64" />
-        <p className="text-md leading-relaxed text-white">
-          Registre os melhores momentos do arraial!
-        </p>
         <p className="text-sm leading-relaxed text-white/80">
+          Registre os melhores momentos do arraial!
+          <br />
           Escolha suas fotos e leve a recordação impressa.
         </p>
+      </motion.div>
+
+      <motion.div
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
+      >
+        <img src="/arraial-mascot.svg" alt="" className="mx-auto h-64 drop-shadow-lg absolute -bottom-24 -right-20" />
       </motion.div>
 
       <motion.div
@@ -129,15 +130,6 @@ function WelcomeStep({ onStart }: { onStart: () => void }) {
         >
           Começar
         </motion.button>
-      </motion.div>
-
-      <motion.div
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-      >
-        <img src="/arraial-mascot.svg" alt="" className="h-64 drop-shadow-lg absolute -bottom-24 -right-20" />
-        <img src="/unaerp.png" alt="" className="h-20 absolute left-4 bottom-4" />
       </motion.div>
     </motion.div>
   );
@@ -556,7 +548,7 @@ function StatusStep({
 // ─── Main page ──────────────────────────────────────────────────────────────
 const STEP_NAMES = ["Início", "Formato", "Foto", "Revisão", "Status"];
 
-export function ArraiáPage() {
+export function ArraialPage() {
   const kioskId = useMemo(
     () => new URLSearchParams(window.location.search).get("kiosk") ?? "kiosk-01",
     [],
