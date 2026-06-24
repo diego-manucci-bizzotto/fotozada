@@ -118,6 +118,7 @@ function Embers({ className }: { className?: string }) {
 
     function tick() {
       ctx.clearRect(0, 0, W, H);
+      ctx.shadowBlur = 0;
       for (const p of parts) {
         p.life++;
         p.sway += p.sf;
@@ -127,12 +128,14 @@ function Embers({ className }: { className?: string }) {
         const t = p.life / p.max;
         const a = t < 0.15 ? t / 0.15 : 1 - (t - 0.15) / 0.85;
         const r = p.r * (1 - t * 0.4);
-        ctx.beginPath();
-        ctx.fillStyle = `hsla(${p.hue},100%,${60 + t * 15}%,${Math.max(0, a) * 0.9})`;
-        ctx.shadowBlur = 8 * dpr;
-        ctx.shadowColor = `hsla(${p.hue},100%,55%,${Math.max(0, a)})`;
-        ctx.arc(p.x, p.y, r, 0, 6.283);
-        ctx.fill();
+        const alpha = Math.max(0, a) * 0.9;
+        const glow = r * 3;
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
+        grad.addColorStop(0, `hsla(${p.hue},100%,${60 + t * 15}%,${alpha})`);
+        grad.addColorStop(0.4, `hsla(${p.hue},100%,55%,${alpha * 0.4})`);
+        grad.addColorStop(1, `hsla(${p.hue},100%,55%,0)`);
+        ctx.fillStyle = grad;
+        ctx.fillRect(p.x - glow, p.y - glow, glow * 2, glow * 2);
         if (p.life >= p.max || p.y < H * 0.05) Object.assign(p, spawn());
       }
       raf = requestAnimationFrame(tick);
@@ -186,13 +189,13 @@ export function AnimatedBonfire({ className }: { className?: string }) {
           {/* base image */}
           <div
             className="absolute inset-0 bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/fogueira-base.svg)", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url(/fogueira-base.webp)", backgroundSize: "100% 100%" }}
           />
           {/* heat shimmer */}
           <div
             className="absolute inset-0 bg-center bg-no-repeat will-change-transform"
             style={{
-              backgroundImage: "url(/fogueira-base.svg)",
+              backgroundImage: "url(/fogueira-base.webp)",
               backgroundSize: "100% 100%",
               mask: "radial-gradient(40% 44% at 52% 46%, #000 28%, transparent 70%)",
               WebkitMask: "radial-gradient(40% 44% at 52% 46%, #000 28%, transparent 70%)",
