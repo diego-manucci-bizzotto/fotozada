@@ -79,6 +79,22 @@ export function ArraialPage() {
 
   return (
     <div className="relative flex h-svh flex-col overflow-hidden bg-linear-to-b from-[#1a0a2e] via-[#2d1b4e] to-[#1a0a2e]">
+      {/* Sky layer — animated stars, fades out near the bonfire glow */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-40"
+        style={{
+          backgroundImage: "url(/ceu-animado.svg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center top",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        style={{
+          background: "radial-gradient(ellipse 60% 50% at 50% 85%, rgba(26,10,46,1) 0%, rgba(26,10,46,0.85) 30%, transparent 70%)",
+        }}
+      />
+
       <div className="relative z-20 pb-2 pt-14 h-12">
         {step !== "welcome" && (
           <motion.div

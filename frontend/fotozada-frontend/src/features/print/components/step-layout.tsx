@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
-import { Image, LayoutGrid } from "lucide-react";
+import { Image, LayoutGrid, RectangleVertical, RectangleHorizontal } from "lucide-react";
 import { LAYOUT_LIST } from "../lib/layouts";
 import type { LayoutDef } from "../types";
 
 const ICONS: Record<string, typeof Image> = {
-  single_10x15: Image,
   strip_3: LayoutGrid,
+  single_10x15_v: RectangleVertical,
+  single_10x15_h: RectangleHorizontal,
 };
 
 export function StepLayout({ onSelect }: { onSelect: (layout: LayoutDef) => void }) {
