@@ -22,23 +22,28 @@ export function WelcomeStep({ onStart }: { onStart: () => void }) {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="space-y-12"
+        className="space-y-2"
       >
-        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-32" />
-        <p className="text-md leading-relaxed text-white font-semibold">
-          Registre os melhores momentos do arraial!
+        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-64" />
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-white">
+            Registre os melhores momentos do arraial!
+          </h2>
+          <p className="text-sm leading-relaxed text-white/50">
+          Mais quente que fogueira de São João!
           <br />
           Escolha suas fotos e leve a recordação impressa.
         </p>
+        </div>
       </motion.div>
 
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-        className="absolute -bottom-16 left-1/2 -translate-x-1/2 pointer-events-none"
+        className="absolute -bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
       >
-        <AnimatedBonfire className="h-82 w-auto" />
+        <AnimatedBonfire className="h-64 w-auto" />
       </motion.div>
 
       <motion.div

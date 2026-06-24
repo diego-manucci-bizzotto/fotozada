@@ -29,38 +29,50 @@ export function ArraialPage() {
   const [frames, setFrames] = useState<FrameData[] | null>(null);
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [result, setResult] = useState<BatchResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const requestIdRef = useRef<string | null>(null);
 
   const sheets = items.reduce((s, i) => s + i.copies, 0);
   const remaining = maxSheets - sheets;
   void remaining; void sheets;
 
-  async function handleConfirm(item: PhotoItem) {
+  function handleConfirm(item: PhotoItem) {
     const allItems = [...items, item];
     setItems(allItems);
+    setSubmitting(true);
+    setStep("status");
 
     if (!requestIdRef.current) requestIdRef.current = newId();
-    const res = await submit
+    submit
       .mutateAsync({ kioskId, items: allItems, clientRequestId: requestIdRef.current })
-      .catch(() => null);
-    if (!res) return;
-    if (res.blocked) {
-      toast.warning(`Limite de ${res.max} folhas por envio`);
-      return;
-    }
-    if (res.error) {
-      toast.error("Erro", { description: res.error });
-      return;
-    }
-    if (res.batch_id && res.job_ids) {
-      setResult({
-        batchId: res.batch_id,
-        jobIds: res.job_ids,
-        status: (res.status as JobStatus) ?? "queued",
-        items: allItems,
+      .then((res) => {
+        if (res.blocked) {
+          toast.warning(`Limite de ${res.max} folhas por envio`);
+          setSubmitting(false);
+          setStep("review");
+          return;
+        }
+        if (res.error) {
+          toast.error("Erro", { description: res.error });
+          setSubmitting(false);
+          setStep("review");
+          return;
+        }
+        if (res.batch_id && res.job_ids) {
+          setResult({
+            batchId: res.batch_id,
+            jobIds: res.job_ids,
+            status: (res.status as JobStatus) ?? "queued",
+            items: allItems,
+          });
+          setSubmitting(false);
+        }
+      })
+      .catch(() => {
+        toast.error("Falha ao enviar");
+        setSubmitting(false);
+        setStep("review");
       });
-      setStep("status");
-    }
   }
 
   function reset() {
@@ -83,7 +95,7 @@ export function ArraialPage() {
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-40"
         style={{
-          backgroundImage: "url(/ceu-animado.webp)",
+          backgroundImage: "url(/ceu-animado.svg)",
           backgroundSize: "cover",
           backgroundPosition: "center top",
         }}
@@ -141,34 +153,62 @@ export function ArraialPage() {
               onBack={() => setStep("photos")}
             />
           )}
-          {step === "status" && result && (
-            <StatusStep key="status" result={result} onNew={reset} />
+          {step === "status" && (
+            <StatusStep key="status" result={result} submitting={submitting} onNew={reset} />
           )}
         </AnimatePresence>
       </div>
 
-      {/* Firelight — 2 layers (consolidated from 5 for performance) */}
+      {/* Firelight — 5 layers */}
 
-      {/* Outer: wide warm halo */}
+      {/* L1: wide ambient yellow halo */}
       <motion.div
         animate={{
-          scale: [1, 1.15, 1.05, 1.2, 1],
-          opacity: [0.25, 0.45, 0.3, 0.5, 0.25],
+          scale: [1, 1.2, 1.05, 1.25, 1],
+          opacity: [0.2, 0.35, 0.25, 0.4, 0.2],
         }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-[500px] w-[500px] -translate-x-1/2 translate-y-1/3 rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(245,158,11,0.7) 0%, rgba(249,115,22,0.4) 40%, rgba(234,179,8,0.15) 70%, transparent 100%)" }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-[600px] w-[600px] -translate-x-1/2 translate-y-1/3 rounded-full bg-yellow-500 blur-3xl"
       />
 
-      {/* Inner: bright flickering core */}
+      {/* L2: warm amber spread */}
       <motion.div
         animate={{
-          scale: [1, 1.3, 1.08, 1.35, 1],
-          opacity: [0.45, 0.8, 0.5, 0.85, 0.45],
+          scale: [1, 1.18, 1.08, 1.22, 1],
+          opacity: [0.3, 0.55, 0.35, 0.6, 0.3],
         }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-40 w-44 -translate-x-1/2 translate-y-1/6 rounded-full blur-2xl"
-        style={{ background: "radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(239,68,68,0.3) 60%, transparent 100%)" }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[400px] -translate-x-1/2 translate-y-1/4 rounded-full bg-amber-500 blur-3xl"
+      />
+
+      {/* L3: orange flicker */}
+      <motion.div
+        animate={{
+          scale: [1.1, 0.95, 1.2, 1, 1.1],
+          opacity: [0.35, 0.6, 0.4, 0.65, 0.35],
+        }}
+        transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 translate-y-1/6 rounded-full bg-orange-500 blur-3xl"
+      />
+
+      {/* L4: red-orange hot zone */}
+      <motion.div
+        animate={{
+          scale: [1, 1.3, 1.1, 1.35, 1],
+          opacity: [0.2, 0.45, 0.25, 0.5, 0.2],
+        }}
+        transition={{ duration: 1.7, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-44 w-44 -translate-x-1/2 translate-y-1/6 rounded-full bg-red-500 blur-2xl"
+      />
+
+      {/* L5: bright core */}
+      <motion.div
+        animate={{
+          scale: [1, 1.4, 1.1, 1.5, 1],
+          opacity: [0.5, 0.85, 0.6, 0.9, 0.5],
+        }}
+        transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-28 w-36 -translate-x-1/2 rounded-full bg-amber-400 blur-2xl"
       />
     </div>
   );
