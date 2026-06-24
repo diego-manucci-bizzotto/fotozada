@@ -27,7 +27,7 @@ export function WelcomeStep({ onStart }: { onStart: () => void }) {
         <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-64" />
         <div className="space-y-1">
           <h2 className="text-lg font-bold text-white">
-            Registre os melhores momentos do arraial!
+            Registre os melhores momentos do arraiá!
           </h2>
           <p className="text-sm leading-relaxed text-white/50">
           Mais quente que fogueira de São João!
