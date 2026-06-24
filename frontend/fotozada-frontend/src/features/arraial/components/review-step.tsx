@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { newId } from "@/lib/device";
-import { composeSheet, sha256Hex } from "../../print/lib/compose";
+import { composeSheet, composeStripPreview, sha256Hex } from "../../print/lib/compose";
 import type { LayoutDef, PhotoItem } from "../../print/types";
 import type { FrameData } from "../types";
 
@@ -26,12 +26,16 @@ export function ReviewStep({
     let active = true;
     let createdUrl: string | null = null;
     (async () => {
-      const composed = await composeSheet(layout, frames.map((f) => f.canvas));
-      const h = await sha256Hex(composed);
-      const url = URL.createObjectURL(composed);
+      const canvases = frames.map((f) => f.canvas);
+      const [printBlob, previewBlob] = await Promise.all([
+        composeSheet(layout, canvases),
+        composeStripPreview(layout, canvases),
+      ]);
+      const h = await sha256Hex(printBlob);
+      const url = URL.createObjectURL(previewBlob);
       createdUrl = url;
       if (active) {
-        setBlob(composed);
+        setBlob(printBlob);
         setHash(h);
         setPreviewUrl(url);
       } else {
@@ -58,7 +62,7 @@ export function ReviewStep({
       })),
       composedBlob: blob,
       composedHash: hash,
-      composedUrl: URL.createObjectURL(blob),
+      composedUrl: previewUrl ?? URL.createObjectURL(blob),
     });
   }
 
@@ -68,7 +72,7 @@ export function ReviewStep({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="flex flex-1 flex-col gap-5 p-6"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 p-6"
     >
       <button onClick={onBack} className="flex items-center gap-1 self-start text-sm text-white/60">
         <ChevronLeft className="h-4 w-4" /> Voltar
@@ -96,15 +100,8 @@ export function ReviewStep({
         )}
       </motion.div>
 
-      <div className="flex gap-3 pb-2">
-        <Button
-          variant="outline"
-          className="flex-1 rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-          onClick={onBack}
-        >
-          Refazer
-        </Button>
-        <motion.div className="flex-1" whileTap={{ scale: 0.97 }}>
+      <div className="flex flex-col gap-3 pb-2">
+        <motion.div whileTap={{ scale: 0.97 }}>
           <Button
             className="w-full rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-500/25 hover:bg-amber-600"
             disabled={!blob}
@@ -114,6 +111,13 @@ export function ReviewStep({
             Imprimir
           </Button>
         </motion.div>
+        <Button
+          variant="outline"
+          className="w-full rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+          onClick={onBack}
+        >
+          Refazer
+        </Button>
       </div>
     </motion.div>
   );

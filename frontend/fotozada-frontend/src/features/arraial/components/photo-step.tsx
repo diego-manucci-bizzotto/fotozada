@@ -62,7 +62,7 @@ export function PhotoStep({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -60 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
-      className="flex flex-1 flex-col gap-5 p-6"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col gap-5 p-6"
     >
       <button onClick={onBack} className="flex items-center gap-1 self-start text-sm text-white/60">
         <ChevronLeft className="h-4 w-4" /> Voltar
@@ -122,15 +122,8 @@ export function PhotoStep({
               onValueChange={([z]) => setZoom(z)}
               className="[&_[role=slider]]:bg-amber-500"
             />
-            <div className="flex gap-3">
-              <Button asChild variant="outline" className="flex-1 rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
-                <label>
-                  <RotateCcw className="mr-1.5 h-4 w-4" />
-                  Trocar
-                  <input type="file" accept="image/*" hidden onChange={pickFile} />
-                </label>
-              </Button>
-              <motion.div className="flex-1" whileTap={{ scale: 0.97 }}>
+            <div className="flex flex-col gap-3">
+              <motion.div whileTap={{ scale: 0.97 }}>
                 <Button
                   className="w-full rounded-xl bg-amber-500 text-white hover:bg-amber-600"
                   disabled={busy || !areaPixels}
@@ -139,6 +132,13 @@ export function PhotoStep({
                   {current + 1 < layout.photos ? "Próxima" : "Concluir"}
                 </Button>
               </motion.div>
+              <Button asChild variant="outline" className="w-full rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+                <label>
+                  <RotateCcw className="mr-1.5 h-4 w-4" />
+                  Trocar foto
+                  <input type="file" accept="image/*" hidden onChange={pickFile} />
+                </label>
+              </Button>
             </div>
           </motion.div>
         )}

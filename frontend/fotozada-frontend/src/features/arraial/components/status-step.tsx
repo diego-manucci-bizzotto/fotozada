@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { PartyPopper, Printer } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { LAYOUTS } from "../../print/lib/layouts";
 import { useBatchStatus } from "../../print/hooks/use-batch-status";
 import type { JobStatus } from "../../print/types";
@@ -16,13 +15,13 @@ const LABEL: Record<JobStatus, string> = {
   canceled: "Cancelado",
 };
 
-const BADGE_VARIANT: Record<JobStatus, "default" | "secondary" | "destructive" | "outline"> = {
-  pending_approval: "outline",
-  queued: "outline",
-  printing: "secondary",
-  done: "default",
-  error: "destructive",
-  canceled: "destructive",
+const BADGE_CLASS: Record<JobStatus, string> = {
+  pending_approval: "bg-white/15 text-white/70 border-white/20",
+  queued: "bg-white/15 text-white/80 border-white/20",
+  printing: "bg-amber-500/20 text-amber-300 border-amber-400/30",
+  done: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+  error: "bg-red-500/20 text-red-300 border-red-400/30",
+  canceled: "bg-red-500/15 text-red-300/70 border-red-400/20",
 };
 
 export function StatusStep({
@@ -50,7 +49,7 @@ export function StatusStep({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-1 flex-col items-center justify-center gap-6 px-5"
+      className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 px-6"
     >
       <motion.div
         animate={allDone ? { scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] } : {}}
@@ -91,9 +90,9 @@ export function StatusStep({
               <span className="text-sm text-white">
                 {j.layout ? LAYOUTS[j.layout].label : "Item"} ×{j.copies}
               </span>
-              <Badge variant={BADGE_VARIANT[st]} className="text-[11px]">
+              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${BADGE_CLASS[st]}`}>
                 {LABEL[st]}
-              </Badge>
+              </span>
             </motion.div>
           );
         })}

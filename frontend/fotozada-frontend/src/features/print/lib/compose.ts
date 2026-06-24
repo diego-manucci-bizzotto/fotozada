@@ -9,6 +9,16 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+let frameCache: Map<string, HTMLImageElement> = new Map();
+
+async function loadFrame(url: string): Promise<HTMLImageElement> {
+  const cached = frameCache.get(url);
+  if (cached) return cached;
+  const img = await loadImage(url);
+  frameCache.set(url, img);
+  return img;
+}
+
 export function canvasToBlob(
   canvas: HTMLCanvasElement,
   type = "image/jpeg",
@@ -23,8 +33,6 @@ export function canvasToBlob(
   );
 }
 
-// Crop the chosen region of a source image and scale it to the target cell
-// resolution. Re-used both as the uploaded photo and as a tile of the sheet.
 export async function cropToCell(
   imageSrc: string,
   crop: CropPixels,
@@ -52,10 +60,33 @@ export async function cropToCell(
   return canvas;
 }
 
-// Assemble the cropped cells onto the final white sheet (10x15) and return a PNG.
+// Draw one strip (photos + optional SVG frame overlay) onto a context at (ox, oy).
+async function drawStrip(
+  ctx: CanvasRenderingContext2D,
+  layout: LayoutDef,
+  cells: HTMLCanvasElement[],
+  ox: number,
+  oy: number,
+) {
+  const sw = layout._stripSize?.w ?? layout.sheet.width;
+  const sh = layout._stripSize?.h ?? layout.sheet.height;
+
+  // Frame first (background), then photos on top in the slots
+  if (layout._frameSvg) {
+    const frame = await loadFrame(layout._frameSvg);
+    ctx.drawImage(frame, ox, oy, sw, sh);
+  }
+
+  layout.cells.forEach((cell, i) => {
+    if (cells[i]) ctx.drawImage(cells[i], ox + cell.x, oy + cell.y, cell.w, cell.h);
+  });
+}
+
+// Assemble the full print sheet (10x15). mirror=true duplicates the strip.
 export async function composeSheet(
   layout: LayoutDef,
   cells: HTMLCanvasElement[],
+  mirror = true,
 ): Promise<Blob> {
   const canvas = document.createElement("canvas");
   canvas.width = layout.sheet.width;
@@ -63,9 +94,34 @@ export async function composeSheet(
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  layout.cells.forEach((cell, i) => {
-    if (cells[i]) ctx.drawImage(cells[i], cell.x, cell.y, cell.w, cell.h);
-  });
+
+  await drawStrip(ctx, layout, cells, 0, 0);
+
+  if (mirror && layout._mirrorX != null) {
+    await drawStrip(ctx, layout, cells, layout._mirrorX, 0);
+  }
+
+  return canvasToBlob(canvas, "image/png");
+}
+
+// Render a single strip for preview (cropped to strip size).
+export async function composeStripPreview(
+  layout: LayoutDef,
+  cells: HTMLCanvasElement[],
+): Promise<Blob> {
+  if (!layout._stripSize) return composeSheet(layout, cells, false);
+
+  const sw = layout._stripSize.w;
+  const sh = layout._stripSize.h;
+  const canvas = document.createElement("canvas");
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, sw, sh);
+
+  await drawStrip(ctx, layout, cells, 0, 0);
+
   return canvasToBlob(canvas, "image/png");
 }
 

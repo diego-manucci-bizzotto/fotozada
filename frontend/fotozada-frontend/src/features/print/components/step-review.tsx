@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { newId } from "@/lib/device";
 import type { LayoutDef, PhotoItem } from "../types";
 import type { FrameData } from "./step-photos";
-import { composeSheet, sha256Hex } from "../lib/compose";
+import { composeSheet, composeStripPreview, sha256Hex } from "../lib/compose";
 
 interface Props {
   layout: LayoutDef;
@@ -25,12 +25,16 @@ export function StepReview({ layout, frames, remainingSheets, onConfirm, onBack 
     let active = true;
     let createdUrl: string | null = null;
     (async () => {
-      const composed = await composeSheet(layout, frames.map((f) => f.canvas));
-      const h = await sha256Hex(composed);
-      const url = URL.createObjectURL(composed);
+      const canvases = frames.map((f) => f.canvas);
+      const [printBlob, previewBlob] = await Promise.all([
+        composeSheet(layout, canvases),
+        composeStripPreview(layout, canvases),
+      ]);
+      const h = await sha256Hex(printBlob);
+      const url = URL.createObjectURL(previewBlob);
       createdUrl = url;
       if (active) {
-        setBlob(composed);
+        setBlob(printBlob);
         setHash(h);
         setPreviewUrl(url);
       } else {
@@ -59,7 +63,7 @@ export function StepReview({ layout, frames, remainingSheets, onConfirm, onBack 
       })),
       composedBlob: blob,
       composedHash: hash,
-      composedUrl: URL.createObjectURL(blob),
+      composedUrl: previewUrl ?? URL.createObjectURL(blob),
     });
   }
 

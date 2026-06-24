@@ -21,7 +21,10 @@ export interface LayoutDef {
   photos: number;
   sheet: { width: number; height: number };
   cellAspect: number; // width / height, fed to the cropper
-  cells: Cell[]; // where each photo sits on the final sheet
+  cells: Cell[]; // where each photo sits on the final sheet (left strip for strip_3)
+  _mirrorX?: number; // if set, composeSheet duplicates cells at this X offset (right strip)
+  _frameSvg?: string; // path to an SVG frame overlay rendered on each strip
+  _stripSize?: { w: number; h: number }; // single strip pixel dimensions (for frame scaling)
 }
 
 export interface CropPixels {
