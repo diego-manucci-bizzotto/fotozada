@@ -189,13 +189,13 @@ export function AnimatedBonfire({ className }: { className?: string }) {
           {/* base image */}
           <div
             className="absolute inset-0 bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/fogueira-base.svg)", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url(/fogueira-base.webp)", backgroundSize: "100% 100%" }}
           />
           {/* heat shimmer */}
           <div
             className="absolute inset-0 bg-center bg-no-repeat will-change-transform"
             style={{
-              backgroundImage: "url(/fogueira-base.svg)",
+              backgroundImage: "url(/fogueira-base.webp)",
               backgroundSize: "100% 100%",
               mask: "radial-gradient(40% 44% at 52% 46%, #000 28%, transparent 70%)",
               WebkitMask: "radial-gradient(40% 44% at 52% 46%, #000 28%, transparent 70%)",

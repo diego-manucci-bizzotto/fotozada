@@ -83,7 +83,7 @@ export function ArraialPage() {
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-40"
         style={{
-          backgroundImage: "url(/ceu-animado.svg)",
+          backgroundImage: "url(/ceu-animado.webp)",
           backgroundSize: "cover",
           backgroundPosition: "center top",
         }}
