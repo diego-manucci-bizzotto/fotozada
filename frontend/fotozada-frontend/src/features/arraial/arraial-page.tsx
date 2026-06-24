@@ -147,56 +147,28 @@ export function ArraialPage() {
         </AnimatePresence>
       </div>
 
-      {/* Firelight — 5 layers, GPU-friendly (blur via tailwind classes) */}
+      {/* Firelight — 2 layers (consolidated from 5 for performance) */}
 
-      {/* L1: wide ambient yellow halo */}
+      {/* Outer: wide warm halo */}
       <motion.div
         animate={{
-          scale: [1, 1.2, 1.05, 1.25, 1],
-          opacity: [0.2, 0.35, 0.25, 0.4, 0.2],
+          scale: [1, 1.15, 1.05, 1.2, 1],
+          opacity: [0.25, 0.45, 0.3, 0.5, 0.25],
         }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-[600px] w-[600px] -translate-x-1/2 translate-y-1/3 rounded-full bg-yellow-500 blur-3xl"
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-[500px] w-[500px] -translate-x-1/2 translate-y-1/3 rounded-full blur-3xl"
+        style={{ background: "radial-gradient(circle, rgba(245,158,11,0.7) 0%, rgba(249,115,22,0.4) 40%, rgba(234,179,8,0.15) 70%, transparent 100%)" }}
       />
 
-      {/* L2: warm amber spread */}
+      {/* Inner: bright flickering core */}
       <motion.div
         animate={{
-          scale: [1, 1.18, 1.08, 1.22, 1],
-          opacity: [0.3, 0.55, 0.35, 0.6, 0.3],
+          scale: [1, 1.3, 1.08, 1.35, 1],
+          opacity: [0.45, 0.8, 0.5, 0.85, 0.45],
         }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-[400px] w-[400px] -translate-x-1/2 translate-y-1/4 rounded-full bg-amber-500 blur-3xl"
-      />
-
-      {/* L3: orange flicker */}
-      <motion.div
-        animate={{
-          scale: [1.1, 0.95, 1.2, 1, 1.1],
-          opacity: [0.35, 0.6, 0.4, 0.65, 0.35],
-        }}
-        transition={{ duration: 2.1, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 translate-y-1/6 rounded-full bg-orange-500 blur-3xl"
-      />
-
-      {/* L4: red-orange hot zone */}
-      <motion.div
-        animate={{
-          scale: [1, 1.3, 1.1, 1.35, 1],
-          opacity: [0.2, 0.45, 0.25, 0.5, 0.2],
-        }}
-        transition={{ duration: 1.7, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-44 w-44 -translate-x-1/2 translate-y-1/6 rounded-full bg-red-500 blur-2xl"
-      />
-
-      {/* L5: bright core right behind the bonfire */}
-      <motion.div
-        animate={{
-          scale: [1, 1.4, 1.1, 1.5, 1],
-          opacity: [0.5, 0.85, 0.6, 0.9, 0.5],
-        }}
-        transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute bottom-0 left-1/2 h-28 w-36 -translate-x-1/2 rounded-full bg-amber-400 blur-2xl"
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute bottom-0 left-1/2 h-40 w-44 -translate-x-1/2 translate-y-1/6 rounded-full blur-2xl"
+        style={{ background: "radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(239,68,68,0.3) 60%, transparent 100%)" }}
       />
     </div>
   );

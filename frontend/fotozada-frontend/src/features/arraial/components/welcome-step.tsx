@@ -38,7 +38,7 @@ export function WelcomeStep({ onStart }: { onStart: () => void }) {
         transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
         className="absolute -bottom-16 left-1/2 -translate-x-1/2 pointer-events-none"
       >
-        <AnimatedBonfire className="h-94 w-auto" />
+        <AnimatedBonfire className="h-82 w-auto" />
       </motion.div>
 
       <motion.div
