@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 
 const FLAME_DEFS: [number, number, number, number, number, number, number, boolean][] = [
   [52, 80, 70, 250, 36, 2.7, 0.0, false],
@@ -68,94 +67,6 @@ function Flames() {
   );
 }
 
-function Embers({ className }: { className?: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const cv = canvasRef.current;
-    if (!cv) return;
-    const ctx = cv.getContext("2d")!;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
-    let W: number, H: number;
-    let raf: number;
-
-    function resize() {
-      const r = cv!.getBoundingClientRect();
-      W = cv!.width = r.width * dpr;
-      H = cv!.height = r.height * dpr;
-    }
-    resize();
-    window.addEventListener("resize", resize);
-
-    interface Ember {
-      x: number; y: number; vx: number; vy: number;
-      r: number; life: number; max: number; hue: number;
-      sway: number; sf: number;
-    }
-
-    function spawn(): Ember {
-      return {
-        x: (0.75 + (Math.random() - 0.5) * 0.06) * W,
-        y: (0.34 + Math.random() * 0.06) * H,
-        vx: (0.05 + (Math.random() - 0.5) * 0.18) * dpr,
-        vy: -(0.3 + Math.random() * 0.75) * dpr,
-        r: (0.7 + Math.random() * 1.7) * dpr,
-        life: 0,
-        max: 60 + Math.random() * 80,
-        hue: 24 + Math.random() * 26,
-        sway: Math.random() * 6.28,
-        sf: 0.02 + Math.random() * 0.05,
-      };
-    }
-
-    const N = 36;
-    const parts: Ember[] = [];
-    for (let i = 0; i < N; i++) {
-      const p = spawn();
-      p.life = Math.random() * p.max;
-      parts.push(p);
-    }
-
-    function tick() {
-      ctx.clearRect(0, 0, W, H);
-      ctx.shadowBlur = 0;
-      for (const p of parts) {
-        p.life++;
-        p.sway += p.sf;
-        p.x += p.vx + Math.cos(p.sway) * 0.4 * dpr;
-        p.y += p.vy;
-        p.vy *= 0.992;
-        const t = p.life / p.max;
-        const a = t < 0.15 ? t / 0.15 : 1 - (t - 0.15) / 0.85;
-        const r = p.r * (1 - t * 0.4);
-        const alpha = Math.max(0, a) * 0.9;
-        const glow = r * 3;
-        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
-        grad.addColorStop(0, `hsla(${p.hue},100%,${60 + t * 15}%,${alpha})`);
-        grad.addColorStop(0.4, `hsla(${p.hue},100%,55%,${alpha * 0.4})`);
-        grad.addColorStop(1, `hsla(${p.hue},100%,55%,0)`);
-        ctx.fillStyle = grad;
-        ctx.fillRect(p.x - glow, p.y - glow, glow * 2, glow * 2);
-        if (p.life >= p.max || p.y < H * 0.05) Object.assign(p, spawn());
-      }
-      raf = requestAnimationFrame(tick);
-    }
-    tick();
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className={className}
-      style={{ mixBlendMode: "screen", pointerEvents: "none" }}
-    />
-  );
-}
 
 export function AnimatedBonfire({ className }: { className?: string }) {
   return (
@@ -189,13 +100,13 @@ export function AnimatedBonfire({ className }: { className?: string }) {
           {/* base image */}
           <div
             className="absolute inset-0 bg-center bg-no-repeat"
-            style={{ backgroundImage: "url(/fogueira-base.webp)", backgroundSize: "100% 100%" }}
+            style={{ backgroundImage: "url(/fogueira-base.svg)", backgroundSize: "100% 100%" }}
           />
           {/* heat shimmer */}
           <div
             className="absolute inset-0 bg-center bg-no-repeat will-change-transform"
             style={{
-              backgroundImage: "url(/fogueira-base.webp)",
+              backgroundImage: "url(/fogueira-base.svg)",
               backgroundSize: "100% 100%",
               mask: "radial-gradient(40% 44% at 52% 46%, #000 28%, transparent 70%)",
               WebkitMask: "radial-gradient(40% 44% at 52% 46%, #000 28%, transparent 70%)",
@@ -218,7 +129,6 @@ export function AnimatedBonfire({ className }: { className?: string }) {
             }}
           />
           <Flames />
-          <Embers className="absolute inset-0" />
         </div>
       </div>
     </>

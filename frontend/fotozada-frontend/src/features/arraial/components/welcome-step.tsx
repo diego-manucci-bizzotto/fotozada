@@ -22,14 +22,19 @@ export function WelcomeStep({ onStart }: { onStart: () => void }) {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="space-y-12"
+        className="space-y-2"
       >
-        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-32" />
-        <p className="text-md leading-relaxed text-white font-semibold">
-          Registre os melhores momentos do arraial!
+        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-64" />
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-white">
+            Registre os melhores momentos do arraial!
+          </h2>
+          <p className="text-sm leading-relaxed text-white/50">
+          Mais quente que fogueira de São João!
           <br />
           Escolha suas fotos e leve a recordação impressa.
         </p>
+        </div>
       </motion.div>
 
       <motion.div
