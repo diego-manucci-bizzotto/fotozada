@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { PartyPopper, Printer } from "lucide-react";
+import { PartyPopper, Printer, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { LAYOUTS } from "../../print/lib/layouts";
 import { useBatchStatus } from "../../print/hooks/use-batch-status";
+import { useQueuePosition } from "../../print/hooks/use-queue-position";
 import type { JobStatus } from "../../print/types";
 import type { BatchResult } from "../types";
 
@@ -50,6 +51,7 @@ export function StatusStep({
     .filter((j) => statuses[j.id] === "done")
     .reduce((s, j) => s + j.copies, 0);
   const allDone = !submitting && jobs.length > 0 && jobs.every((j) => statuses[j.id] === "done");
+  const queueAhead = useQueuePosition(result?.batchId, !submitting && !allDone);
 
   return (
     <motion.div
@@ -79,6 +81,28 @@ export function StatusStep({
             : `${done} de ${total} folha${total !== 1 ? "s" : ""} pronta${done !== 1 ? "s" : ""}`}
         </p>
       </div>
+
+      {queueAhead !== null && !allDone && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-xs rounded-2xl border border-amber-400/30 bg-amber-500/10 px-5 py-4 text-center backdrop-blur-sm"
+        >
+          <p className="flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">
+            <Users className="h-3.5 w-3.5" /> Sua vez na fila
+          </p>
+          {queueAhead > 0 ? (
+            <>
+              <p className="mt-1 text-4xl font-black text-amber-300">{queueAhead + 1}º</p>
+              <p className="text-xs text-white/50">
+                {queueAhead} {queueAhead === 1 ? "foto" : "fotos"} na sua frente
+              </p>
+            </>
+          ) : (
+            <p className="mt-1.5 text-lg font-bold text-amber-300">É a sua vez!</p>
+          )}
+        </motion.div>
+      )}
 
       <div className="w-full max-w-xs">
         <Progress
