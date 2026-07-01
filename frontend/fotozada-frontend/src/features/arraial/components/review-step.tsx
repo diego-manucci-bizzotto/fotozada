@@ -93,7 +93,7 @@ export function ReviewStep({
           <img
             src={previewUrl}
             alt="Pré-visualização"
-            className="max-h-72 rounded-xl shadow-2xl shadow-black/40"
+            className="max-h-96 rounded-xl shadow-2xl shadow-black/40"
           />
         ) : (
           <div className="text-sm text-white/40">Montando…</div>

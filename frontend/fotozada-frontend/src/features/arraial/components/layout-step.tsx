@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ImagePlus, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, RectangleVertical, RectangleHorizontal, Sparkles } from "lucide-react";
 import { LAYOUT_LIST } from "../../print/lib/layouts";
 import type { LayoutDef } from "../../print/types";
 
@@ -42,10 +42,12 @@ export function LayoutStep({
             <div className="absolute inset-0 bg-linear-to-r from-amber-500/0 to-amber-500/0 transition-all group-hover:from-amber-500/10 group-hover:to-orange-500/10" />
             <div className="relative flex items-center gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
-                {l.id === "single_10x15" ? (
-                  <ImagePlus className="h-7 w-7 text-amber-400" />
-                ) : (
+                {l.id === "strip_3" ? (
                   <Sparkles className="h-7 w-7 text-amber-400" />
+                ) : l.id === "single_10x15_h" ? (
+                  <RectangleHorizontal className="h-7 w-7 text-amber-400" />
+                ) : (
+                  <RectangleVertical className="h-7 w-7 text-amber-400" />
                 )}
               </div>
               <div>

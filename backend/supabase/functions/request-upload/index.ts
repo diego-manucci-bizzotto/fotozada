@@ -5,7 +5,8 @@ import { corsHeaders, json } from "../_shared/cors.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const PHOTOS_PER_LAYOUT: Record<string, number> = {
-  single_10x15: 1,
+  single_10x15_v: 1,
+  single_10x15_h: 1,
   strip_3: 3,
 };
 

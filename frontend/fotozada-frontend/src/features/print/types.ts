@@ -1,4 +1,4 @@
-export type LayoutId = "single_10x15" | "strip_3";
+export type LayoutId = "strip_3" | "single_10x15_v" | "single_10x15_h";
 
 export type JobStatus =
   | "pending_approval"

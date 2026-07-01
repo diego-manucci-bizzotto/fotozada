@@ -16,7 +16,7 @@ function compute(jobs: Job[]) {
   const avgMs = durations.length
     ? `${Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)} ms`
     : "—";
-  const single = jobs.filter((j) => j.layout === "single_10x15").length;
+  const single = jobs.filter((j) => j.layout === "single_10x15_v" || j.layout === "single_10x15_h").length;
   const strip = jobs.filter((j) => j.layout === "strip_3").length;
   return { sheetsToday, active, successRate, avgMs, single, strip };
 }

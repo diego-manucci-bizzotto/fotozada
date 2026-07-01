@@ -1,8 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { PartyPopper, Printer } from "lucide-react";
+import { PartyPopper, Printer, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { LAYOUTS } from "../../print/lib/layouts";
 import { useBatchStatus } from "../../print/hooks/use-batch-status";
+import { useQueuePosition } from "../../print/hooks/use-queue-position";
 import type { JobStatus } from "../../print/types";
 import type { BatchResult } from "../types";
 
@@ -26,24 +27,31 @@ const BADGE_CLASS: Record<JobStatus, string> = {
 
 export function StatusStep({
   result,
+  submitting,
   onNew,
 }: {
-  result: BatchResult;
+  result: BatchResult | null;
+  submitting: boolean;
   onNew: () => void;
 }) {
-  const statuses = useBatchStatus(result.batchId, result.jobIds, result.status);
+  const statuses = useBatchStatus(
+    result?.batchId ?? "",
+    result?.jobIds ?? [],
+    result?.status ?? "queued",
+  );
 
-  const jobs = result.jobIds.map((id, i) => ({
+  const jobs = (result?.jobIds ?? []).map((id, i) => ({
     id,
-    layout: result.items[i]?.layout,
-    copies: result.items[i]?.copies ?? 1,
+    layout: result?.items[i]?.layout,
+    copies: result?.items[i]?.copies ?? 1,
   }));
 
   const total = jobs.reduce((s, j) => s + j.copies, 0);
   const done = jobs
     .filter((j) => statuses[j.id] === "done")
     .reduce((s, j) => s + j.copies, 0);
-  const allDone = jobs.length > 0 && jobs.every((j) => statuses[j.id] === "done");
+  const allDone = !submitting && jobs.length > 0 && jobs.every((j) => statuses[j.id] === "done");
+  const queueAhead = useQueuePosition(result?.batchId, !submitting && !allDone);
 
   return (
     <motion.div
@@ -65,38 +73,67 @@ export function StatusStep({
 
       <div className="text-center">
         <h2 className="text-xl font-bold text-white">
-          {allDone ? "Pronto! Retire sua foto" : "Imprimindo…"}
+          {submitting ? "Enviando…" : allDone ? "Pronto! Retire sua foto" : "Imprimindo…"}
         </h2>
         <p className="mt-1 text-sm text-white/50">
-          {done} de {total} folha{total !== 1 ? "s" : ""} pronta{done !== 1 ? "s" : ""}
+          {submitting
+            ? "Preparando sua foto para impressão"
+            : `${done} de ${total} folha${total !== 1 ? "s" : ""} pronta${done !== 1 ? "s" : ""}`}
         </p>
       </div>
 
+      {queueAhead !== null && !allDone && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-xs rounded-2xl border border-amber-400/30 bg-amber-500/10 px-5 py-4 text-center backdrop-blur-sm"
+        >
+          <p className="flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">
+            <Users className="h-3.5 w-3.5" /> Sua vez na fila
+          </p>
+          {queueAhead > 0 ? (
+            <>
+              <p className="mt-1 text-4xl font-black text-amber-300">{queueAhead + 1}º</p>
+              <p className="text-xs text-white/50">
+                {queueAhead} {queueAhead === 1 ? "foto" : "fotos"} na sua frente
+              </p>
+            </>
+          ) : (
+            <p className="mt-1.5 text-lg font-bold text-amber-300">É a sua vez!</p>
+          )}
+        </motion.div>
+      )}
+
       <div className="w-full max-w-xs">
-        <Progress value={total ? (done / total) * 100 : 0} className="h-3 bg-white/10" />
+        <Progress
+          value={submitting ? undefined : total ? (done / total) * 100 : 0}
+          className={`h-3 bg-white/10 ${submitting ? "animate-pulse" : ""}`}
+        />
       </div>
 
-      <div className="w-full max-w-xs space-y-2">
-        {jobs.map((j, i) => {
-          const st = statuses[j.id] ?? "queued";
-          return (
-            <motion.div
-              key={j.id}
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className="flex items-center justify-between rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm"
-            >
-              <span className="text-sm text-white">
-                {j.layout ? LAYOUTS[j.layout].label : "Item"} ×{j.copies}
-              </span>
-              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${BADGE_CLASS[st]}`}>
-                {LABEL[st]}
-              </span>
-            </motion.div>
-          );
-        })}
-      </div>
+      {!submitting && (
+        <div className="w-full max-w-xs space-y-2">
+          {jobs.map((j, i) => {
+            const st = statuses[j.id] ?? "queued";
+            return (
+              <motion.div
+                key={j.id}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="flex items-center justify-between rounded-xl bg-white/10 px-4 py-3 backdrop-blur-sm"
+              >
+                <span className="text-sm text-white">
+                  {j.layout ? LAYOUTS[j.layout].label : "Item"} ×{j.copies}
+                </span>
+                <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${BADGE_CLASS[st]}`}>
+                  {LABEL[st]}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
       <AnimatePresence>
         {allDone && (

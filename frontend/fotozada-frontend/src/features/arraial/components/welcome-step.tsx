@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { AnimatedBonfire } from "./animated-bonfire";
 
 export function WelcomeStep({ onStart }: { onStart: () => void }) {
   return (
@@ -21,24 +22,29 @@ export function WelcomeStep({ onStart }: { onStart: () => void }) {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="space-y-12"
+        className="space-y-2"
       >
-        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-32" />
-        <p className="text-md leading-relaxed text-white font-semibold">
-          Registre os melhores momentos do arraial!
+        <img src="/arraial-logo.svg" alt="Arraiá UNAERP" className="mx-auto h-64" />
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-white">
+            Registre os melhores momentos do arraiá!
+          </h2>
+          <p className="text-sm leading-relaxed text-white/50">
+          Mais quente que fogueira de São João!
           <br />
           Escolha suas fotos e leve a recordação impressa.
         </p>
+        </div>
       </motion.div>
 
-      <motion.img
-        src="/fogueira.svg"
-        alt=""
+      <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.2 }}
-        className="absolute -bottom-16 h-94  -translate-x-1/2 left-1/2 pointer-events-auto"
-      />
+        className="absolute -bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
+      >
+        <AnimatedBonfire className="h-64 w-auto" />
+      </motion.div>
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
@@ -49,7 +55,7 @@ export function WelcomeStep({ onStart }: { onStart: () => void }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onStart}
-          className="rounded-2xl bg-amber-500 px-10 py-4 text-base font-bold text-white shadow-lg shadow-amber-500/30 "
+          className="rounded-2xl bg-amber-500 px-10 py-4 text-base font-bold text-white shadow-lg shadow-amber-500/30"
         >
           INICIAR
         </motion.button>

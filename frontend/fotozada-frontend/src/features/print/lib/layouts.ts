@@ -1,25 +1,20 @@
 import type { LayoutDef, LayoutId } from "../types";
 
-// Final sheet = 10x15 cm portrait @ 300 DPI.
-const SHEET = { width: 1200, height: 1800 };
+const SHEET = { width: 1200, height: 1800 }; // 10×15 cm portrait @ 300 DPI
+const SHEET_H = { width: 1800, height: 1200 }; // 10×15 cm landscape @ 300 DPI
 
-// Photo-strip with SVG frame (/moldura-tirinha.svg).
-// The frame SVG has viewBox 0 0 141.75 425.25 (one 5×15 strip).
-// We scale it to fill half the 10×15 sheet (600×1800), then position photos
-// at the clip-path slots found in the SVG (scaled up proportionally).
-// The full sheet has 2 identical framed strips side by side.
-const SVG_VB_W = 141.75;
-const STRIP_W = SHEET.width / 2; // 600px per strip
-const STRIP_H = SHEET.height;     // 1800px
-const S = STRIP_W / SVG_VB_W;     // scale factor ~4.23
-
-// Photo slots measured from the rendered SVG (in viewBox units),
-// inset slightly so a white border is visible around each photo.
 const PHOTO_INSET = 2.5; // viewBox units of white padding per side
+
+// --- Tirinha 5×15 (two mirrored strips per sheet) ---
+const SVG_VB_W = 141.75;
+const STRIP_W = SHEET.width / 2;
+const STRIP_H = SHEET.height;
+const S = STRIP_W / SVG_VB_W;
+
 const SVG_SLOTS_RAW = [
-  { x: 14.0, y: 77.5, w: 115.5, h: 97.3 },
-  { x: 14.8, y: 183.5, w: 114.0, h: 95.8 },
-  { x: 14.0, y: 288.8, w: 114.0, h: 95.8 },
+  { x: 14.0, y: 77.5, w: 115.5, h: 97.0 },
+  { x: 15.0, y: 183.5, w: 113.5, h: 95.5 },
+  { x: 14.0, y: 288.5, w: 114.0, h: 95.5 },
 ];
 const SVG_SLOTS = SVG_SLOTS_RAW.map((s) => ({
   x: s.x + PHOTO_INSET,
@@ -27,13 +22,34 @@ const SVG_SLOTS = SVG_SLOTS_RAW.map((s) => ({
   w: s.w - PHOTO_INSET * 2,
   h: s.h - PHOTO_INSET * 2,
 }));
-
 const STRIP_CELLS = SVG_SLOTS.map((slot) => ({
   x: Math.round(slot.x * S),
   y: Math.round(slot.y * S),
   w: Math.round(slot.w * S),
   h: Math.round(slot.h * S),
 }));
+
+// --- 10×15 Vertical (portrait frame over full sheet) ---
+const V_VB_W = 283.5;
+const V_S = SHEET.width / V_VB_W;
+const V_SLOT_RAW = { x: 13.3, y: 83.5, w: 256.3, h: 291.3 };
+const V_CELL = {
+  x: Math.round((V_SLOT_RAW.x + PHOTO_INSET) * V_S),
+  y: Math.round((V_SLOT_RAW.y + PHOTO_INSET) * V_S),
+  w: Math.round((V_SLOT_RAW.w - PHOTO_INSET * 2) * V_S),
+  h: Math.round((V_SLOT_RAW.h - PHOTO_INSET * 2) * V_S),
+};
+
+// --- 10×15 Horizontal (landscape frame over full sheet) ---
+const H_VB_W = 425.25;
+const H_S = SHEET_H.width / H_VB_W;
+const H_SLOT_RAW = { x: 15, y: 59.5, w: 395, h: 187 };
+const H_CELL = {
+  x: Math.round((H_SLOT_RAW.x + PHOTO_INSET) * H_S),
+  y: Math.round((H_SLOT_RAW.y + PHOTO_INSET) * H_S),
+  w: Math.round((H_SLOT_RAW.w - PHOTO_INSET * 2) * H_S),
+  h: Math.round((H_SLOT_RAW.h - PHOTO_INSET * 2) * H_S),
+};
 
 export const LAYOUTS: Record<LayoutId, LayoutDef> = {
   strip_3: {
@@ -47,13 +63,23 @@ export const LAYOUTS: Record<LayoutId, LayoutDef> = {
     _frameSvg: "/moldura-tirinha.svg",
     _stripSize: { w: STRIP_W, h: STRIP_H },
   },
-  single_10x15: {
-    id: "single_10x15",
-    label: "Foto 10x15",
+  single_10x15_v: {
+    id: "single_10x15_v",
+    label: "10×15 Vertical",
     photos: 1,
     sheet: SHEET,
-    cellAspect: SHEET.width / SHEET.height,
-    cells: [{ x: 0, y: 0, w: SHEET.width, h: SHEET.height }],
+    cellAspect: V_CELL.w / V_CELL.h,
+    cells: [V_CELL],
+    _frameSvg: "/moldura-10x15-v.svg",
+  },
+  single_10x15_h: {
+    id: "single_10x15_h",
+    label: "10×15 Horizontal",
+    photos: 1,
+    sheet: SHEET_H,
+    cellAspect: H_CELL.w / H_CELL.h,
+    cells: [H_CELL],
+    _frameSvg: "/moldura-10x15-h.svg",
   },
 };
 
