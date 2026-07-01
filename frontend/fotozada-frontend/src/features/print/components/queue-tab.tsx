@@ -52,6 +52,8 @@ function ActiveQueue({ result, onNew }: { result: BatchResult; onNew: () => void
     .filter((j) => statuses[j.id] === "done")
     .reduce((s, j) => s + j.copies, 0);
   const allDone = jobs.length > 0 && jobs.every((j) => statuses[j.id] === "done");
+  const hasError = jobs.some((j) => statuses[j.id] === "error" || statuses[j.id] === "canceled");
+  const showNew = allDone || hasError;
 
   return (
     <motion.div
@@ -116,13 +118,17 @@ function ActiveQueue({ result, onNew }: { result: BatchResult; onNew: () => void
       </div>
 
       <AnimatePresence>
-        {allDone && (
+        {showNew && (
           <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
-            <Button size="lg" className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-700 shadow-md shadow-primary/25" onClick={onNew}>
+            <Button
+              size="lg"
+              className="w-full rounded-xl bg-gradient-to-r from-primary to-blue-700 shadow-md shadow-primary/25"
+              onClick={onNew}
+            >
               Nova impressão
             </Button>
           </motion.div>

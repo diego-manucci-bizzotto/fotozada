@@ -8,7 +8,7 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<TotemPage />} />
-        <Route path="/arraial" element={<ArraialPage />} />
+        <Route path="/arraia" element={<ArraialPage />} />
         <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </BrowserRouter>
