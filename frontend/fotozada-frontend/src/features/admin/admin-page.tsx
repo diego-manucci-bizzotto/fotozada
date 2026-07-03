@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
+import { LayoutDashboard, LogOut } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "./hooks/use-auth";
 import { useAdminJobs } from "./hooks/use-admin-jobs";
 import { useAdminSettings } from "./hooks/use-admin-settings";
@@ -68,10 +70,16 @@ function Dashboard() {
         transition={{ type: "spring", stiffness: 300, damping: 25 }}
         className="flex items-center justify-between"
       >
-        <span className="bg-gradient-to-r from-primary to-blue-700 bg-clip-text text-lg font-bold tracking-tight text-transparent">
-          Fotozada · Admin
-        </span>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
+            <LayoutDashboard className="h-4 w-4" />
+          </div>
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            Fotozada · Admin
+          </span>
+        </div>
         <Button variant="ghost" size="sm" onClick={() => supabase.auth.signOut()}>
+          <LogOut className="h-4 w-4" />
           Sair
         </Button>
       </motion.header>
@@ -88,30 +96,28 @@ function Dashboard() {
             settings={settings.data}
             saving={update.isPending}
             onSave={(v) => update.mutate(v)}
-            onSimulate={() => actions.simulate.mutate()}
           />
         </motion.div>
       )}
 
-      <motion.h2
-        initial={{ opacity: 0, x: -8 }}
-        animate={{ opacity: 1, x: 0 }}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="text-base font-semibold"
       >
-        Fila ao vivo
-      </motion.h2>
-      <JobTable jobs={active} actions={actions} />
-
-      <motion.h2
-        initial={{ opacity: 0, x: -8 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.3 }}
-        className="text-base font-semibold"
-      >
-        Histórico
-      </motion.h2>
-      <JobTable jobs={history} actions={actions} />
+        <Tabs defaultValue="active">
+          <TabsList>
+            <TabsTrigger value="active">Fila ao vivo ({active.length})</TabsTrigger>
+            <TabsTrigger value="history">Histórico ({history.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="active" className="mt-4">
+            <JobTable jobs={active} actions={actions} />
+          </TabsContent>
+          <TabsContent value="history" className="mt-4">
+            <JobTable jobs={history} actions={actions} />
+          </TabsContent>
+        </Tabs>
+      </motion.div>
     </motion.div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,8 +23,8 @@ export function JobPreviewDialog({ path }: { path: string }) {
   return (
     <Dialog onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="link" size="sm">
-          Ver
+        <Button variant="ghost" size="icon-sm" title="Visualizar">
+          <Eye className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>

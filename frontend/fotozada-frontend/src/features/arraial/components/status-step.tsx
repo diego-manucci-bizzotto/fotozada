@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PartyPopper, Printer, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { LAYOUTS } from "../../print/lib/layouts";
+import { PRINT_COMPLETE_DELAY_SECONDS } from "../../print/lib/print-timing";
 import { useBatchStatus } from "../../print/hooks/use-batch-status";
 import { useQueuePosition } from "../../print/hooks/use-queue-position";
 import type { JobStatus } from "../../print/types";
@@ -24,6 +26,15 @@ const BADGE_CLASS: Record<JobStatus, string> = {
   error: "bg-red-500/20 text-red-300 border-red-400/30",
   canceled: "bg-red-500/15 text-red-300/70 border-red-400/20",
 };
+
+// "3 fotos na frente" -> "~1min30s" — approximate, since a job already
+// printing may be partway through its own delay, not just starting it.
+function formatEstimate(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? `${m}min ${s}s` : `${m}min`;
+}
 
 export function StatusStep({
   result,
@@ -72,6 +83,25 @@ export function StatusStep({
     .filter((j) => statusFor(j.id) === "done")
     .reduce((s, j) => s + j.copies, 0);
 
+  // Estimated wait for people still queued behind this batch (2nd place or
+  // later) — not a countdown for this batch's own print. Derived from
+  // `ahead` (already live-polled via queue_position, robust to refresh —
+  // survives a fresh mount with no stale-value flash, since it's re-fetched
+  // from the DB, not read from localStorage) times the fixed per-print delay.
+  // `baseSeconds` is computed synchronously in render (not inside the effect)
+  // so the very first paint after `ahead` changes already shows the right
+  // number — only the "ticking down between polls" part needs an effect.
+  const ahead = queueState?.ahead ?? 0;
+  const baseSeconds = ahead * PRINT_COMPLETE_DELAY_SECONDS;
+  const [elapsedSinceSync, setElapsedSinceSync] = useState(0);
+  useEffect(() => {
+    setElapsedSinceSync(0);
+    if (ahead <= 0) return;
+    const id = setInterval(() => setElapsedSinceSync((e) => e + 1), 1000);
+    return () => clearInterval(id);
+  }, [ahead]);
+  const estimatedSeconds = Math.max(0, baseSeconds - elapsedSinceSync);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -116,6 +146,14 @@ export function StatusStep({
               <p className="text-xs text-white/50">
                 {queueState.ahead} {queueState.ahead === 1 ? "foto" : "fotos"} na sua frente
               </p>
+              <div className="mt-3 border-t border-amber-400/20 pt-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/70">
+                  Tempo estimado até a sua foto
+                </p>
+                <p className="mt-0.5 text-2xl font-black text-amber-300">
+                  {formatEstimate(estimatedSeconds)}
+                </p>
+              </div>
             </>
           ) : (
             <p className="mt-1.5 text-lg font-bold text-amber-300">É a sua vez!</p>
