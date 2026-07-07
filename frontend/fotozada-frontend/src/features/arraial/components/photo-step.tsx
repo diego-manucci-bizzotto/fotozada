@@ -72,6 +72,11 @@ export function PhotoStep({
         <h2 className="flex items-center justify-center gap-2 text-lg font-bold text-white">
           <Camera className="h-5 w-5 text-amber-400" />
           Suas fotos
+          {layout.photos > 1 && (
+            <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-sm font-bold text-amber-400">
+              {current + 1}/{layout.photos}
+            </span>
+          )}
         </h2>
         <p className="mt-1 text-sm text-white/50">
           {!pickedSrc ? "Escolha uma foto da galeria" : "Ajuste o enquadramento"}
