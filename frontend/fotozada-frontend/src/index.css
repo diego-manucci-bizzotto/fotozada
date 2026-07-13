@@ -4,6 +4,7 @@
 /* Fotozada — tema claro, azul + branco (sem dark mode). */
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
 
   --background: oklch(1 0 0); /* branco */
