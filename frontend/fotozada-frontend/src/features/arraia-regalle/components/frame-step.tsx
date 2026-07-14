@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ImageOff } from "lucide-react";
 import { FRAME_NUMBERS, buildLayout, frameAssetPaths } from "../lib/layouts";
 import type { BaseLayout, RegalleLayoutDef } from "../lib/layouts";
 
@@ -52,12 +52,20 @@ export function FrameStep({
                   className="relative overflow-hidden rounded-lg bg-white"
                   style={{ aspectRatio: previewAspect }}
                 >
-                  <img src={bg} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                  {bg ? (
+                    <img src={bg} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <ImageOff className="h-6 w-6 text-black/20" />
+                    </div>
+                  )}
                   {overlay && (
                     <img src={overlay} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   )}
                 </div>
-                <div className="mt-2 text-center text-xs font-semibold text-white/70">Estilo {n}</div>
+                <div className="mt-2 text-center text-xs font-semibold text-white/70">
+                  {n === 0 ? "Sem moldura" : `Estilo ${n}`}
+                </div>
               </motion.button>
             );
           })}

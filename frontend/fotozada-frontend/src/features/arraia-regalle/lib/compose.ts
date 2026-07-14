@@ -62,8 +62,10 @@ async function drawStrip(
   const sw = layout._stripSize?.w ?? layout.sheet.width;
   const sh = layout._stripSize?.h ?? layout.sheet.height;
 
-  const bg = await loadAsset(layout._frameSvg);
-  ctx.drawImage(bg, ox, oy, sw, sh);
+  if (layout._frameSvg) {
+    const bg = await loadAsset(layout._frameSvg);
+    ctx.drawImage(bg, ox, oy, sw, sh);
+  }
 
   layout.cells.forEach((cell, i) => {
     if (cells[i]) ctx.drawImage(cells[i], ox + cell.x, oy + cell.y, cell.w, cell.h);
