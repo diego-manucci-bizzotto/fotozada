@@ -132,17 +132,37 @@ export function frameAssetPaths(folder: FrameFolder, n: FrameNumber) {
   };
 }
 
+// "Sem moldura": a foto preenche a folha (ou cada terço da tira) inteira,
+// de ponta a ponta — sem a margem que as molduras reservam pra arte do
+// fundo. Divide a tira em fatias iguais sem gaps mesmo se `h/photos` não
+// for um inteiro exato.
+function fullBleedCells(base: BaseLayout): Cell[] {
+  if (base._stripSize) {
+    const { w, h } = base._stripSize;
+    const n = base.photos;
+    const bounds = Array.from({ length: n + 1 }, (_, i) => Math.round((i * h) / n));
+    return Array.from({ length: n }, (_, i) => ({
+      x: 0,
+      y: bounds[i],
+      w,
+      h: bounds[i + 1] - bounds[i],
+    }));
+  }
+  return [{ x: 0, y: 0, w: base.sheet.width, h: base.sheet.height }];
+}
+
 export function buildLayout(baseId: LayoutId, frameNumber: FrameNumber): RegalleLayoutDef {
   const base = BASE_LAYOUTS.find((b) => b.id === baseId);
   if (!base) throw new Error(`layout desconhecido: ${baseId}`);
   const { bg, overlay } = frameAssetPaths(base.folder, frameNumber);
+  const cells = frameNumber === 0 ? fullBleedCells(base) : base.cells;
   return {
     id: base.id,
     label: base.label,
     photos: base.photos,
     sheet: base.sheet,
-    cellAspect: base.cellAspect,
-    cells: base.cells,
+    cellAspect: cells[0].w / cells[0].h,
+    cells,
     frameNumber,
     _mirrorX: base._mirrorX,
     _frameSvg: bg,
