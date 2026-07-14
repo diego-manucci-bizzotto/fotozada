@@ -125,7 +125,8 @@ export function frameAssetPaths(folder: FrameFolder, n: FrameNumber) {
   return {
     bg: `/arraia-regalle/${folder}/${n}-bg.svg`,
     // O design 1 é a versão "limpa", sem clipart decorativo sobre a foto.
-    overlay: n === 1 ? undefined : `/arraia-regalle/${folder}/${n}-overlay.png`,
+    // Overlay em SVG com o mesmo artboard do fundo — sem distorção nem corte.
+    overlay: n === 1 ? undefined : `/arraia-regalle/${folder}/${n}-overlay.svg`,
   };
 }
 

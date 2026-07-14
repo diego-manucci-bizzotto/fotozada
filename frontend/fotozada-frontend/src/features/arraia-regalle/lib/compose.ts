@@ -24,6 +24,33 @@ async function loadAsset(url: string): Promise<HTMLImageElement> {
   return img;
 }
 
+// Desenha `img` cobrindo a caixa (dx, dy, dw, dh) sem distorcer — escala
+// uniformemente pelo maior fator, centraliza e recorta o excedente (mesmo
+// comportamento de `object-fit: cover`). Os PNGs de overlay são exportados
+// com proporção própria, diferente da tira/folha final, e o transbordo é
+// proposital: deve ser cortado, não espremido para caber.
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+) {
+  const scale = Math.max(dw / img.naturalWidth, dh / img.naturalHeight);
+  const w = img.naturalWidth * scale;
+  const h = img.naturalHeight * scale;
+  const x = dx + (dw - w) / 2;
+  const y = dy + (dh - h) / 2;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(dx, dy, dw, dh);
+  ctx.clip();
+  ctx.drawImage(img, x, y, w, h);
+  ctx.restore();
+}
+
 // Desenha uma tira completa (fundo -> fotos -> overlay) no contexto em (ox, oy).
 async function drawStrip(
   ctx: CanvasRenderingContext2D,
@@ -44,7 +71,7 @@ async function drawStrip(
 
   if (layout._overlaySvg) {
     const overlay = await loadAsset(layout._overlaySvg);
-    ctx.drawImage(overlay, ox, oy, sw, sh);
+    drawCover(ctx, overlay, ox, oy, sw, sh);
   }
 }
 

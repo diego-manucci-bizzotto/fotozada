@@ -53,7 +53,7 @@ export function FrameStep({
               >
                 <img src={bg} alt="" className="absolute inset-0 h-full w-full object-contain" />
                 {overlay && (
-                  <img src={overlay} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                  <img src={overlay} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 )}
               </div>
               <div className="mt-2 text-center text-xs font-semibold text-white/70">Estilo {n}</div>
