@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ImagePlus } from "lucide-react";
 import { FRAME_NUMBERS, buildLayout, frameAssetPaths } from "../lib/layouts";
 import type { BaseLayout, RegalleLayoutDef } from "../lib/layouts";
 
@@ -49,15 +49,27 @@ export function FrameStep({
                 className="group relative overflow-hidden rounded-2xl bg-white/10 p-2 backdrop-blur-sm"
               >
                 <div
-                  className="relative overflow-hidden rounded-lg bg-white"
+                  className={`relative overflow-hidden rounded-lg ${
+                    bg ? "bg-white" : "bg-gradient-to-br from-amber-50 to-orange-100"
+                  }`}
                   style={{ aspectRatio: previewAspect }}
                 >
-                  <img src={bg} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                  {bg ? (
+                    <img src={bg} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/15">
+                        <ImagePlus className="h-5 w-5 text-amber-600" />
+                      </div>
+                    </div>
+                  )}
                   {overlay && (
                     <img src={overlay} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   )}
                 </div>
-                <div className="mt-2 text-center text-xs font-semibold text-white/70">Estilo {n}</div>
+                <div className="mt-2 text-center text-xs font-semibold text-white/70">
+                  {n === 0 ? "Sem moldura" : `Estilo ${n}`}
+                </div>
               </motion.button>
             );
           })}

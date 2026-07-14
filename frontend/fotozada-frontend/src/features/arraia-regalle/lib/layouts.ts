@@ -16,7 +16,7 @@ export interface RegalleLayoutDef {
   cells: Cell[];
   frameNumber: FrameNumber;
   _mirrorX?: number;
-  _frameSvg: string; // fundo (camada 1)
+  _frameSvg?: string; // fundo (camada 1) — ausente na opção "sem moldura"
   _overlaySvg?: string; // arte sobre a foto (camada 3) — ausente no design 1
   _stripSize?: { w: number; h: number };
 }
@@ -118,10 +118,12 @@ export const BASE_LAYOUTS: BaseLayout[] = [
   },
 ];
 
-export const FRAME_NUMBERS = [1, 2, 3, 4, 5] as const;
+// 0 = "sem moldura" (nem fundo nem overlay, só a foto na folha branca).
+export const FRAME_NUMBERS = [0, 1, 2, 3, 4, 5] as const;
 export type FrameNumber = (typeof FRAME_NUMBERS)[number];
 
 export function frameAssetPaths(folder: FrameFolder, n: FrameNumber) {
+  if (n === 0) return { bg: undefined, overlay: undefined };
   return {
     bg: `/arraia-regalle/${folder}/${n}-bg.svg`,
     // O design 1 é a versão "limpa", sem clipart decorativo sobre a foto.
