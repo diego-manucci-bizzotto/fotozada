@@ -104,8 +104,14 @@ def submit_to_cups(file_path: str, copies: int, layout: str) -> int:
         "-n", str(copies),
         "-o", f"PageSize={page_size}",
         "-o", "fit-to-page",
-        file_path,
     ]
+    if layout == "single_10x15_h":
+        # w288h432 é sempre retrato (4x6"); a imagem enviada é paisagem
+        # (1800x1200) — sem avisar o CUPS, ele encaixa a imagem no retângulo
+        # retrato sem girar, sobrando margem embaixo/direita em vez de cobrir
+        # a folha inteira.
+        cmd += ["-o", "landscape", "-o", "orientation-requested=4"]
+    cmd.append(file_path)
     log.info(f"  Layout: {layout} → PageSize={page_size}, cópias={copies}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
