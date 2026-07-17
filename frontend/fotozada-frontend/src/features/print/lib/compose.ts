@@ -44,6 +44,8 @@ export async function cropToCell(
   canvas.width = Math.round(outW);
   canvas.height = Math.round(outH);
   const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(
@@ -60,6 +62,13 @@ export async function cropToCell(
   return canvas;
 }
 
+// A DNP RX1 corta uma faixa fixa da borda física da folha em modo borderless
+// (overscan do driver/feed) — independe de DPI ou opções do CUPS. Encolhemos
+// levemente o conteúdo no eixo Y e centralizamos, deixando uma margem de
+// segurança em branco que a impressora descarta em vez de cortar a arte.
+// Ajuste este valor com base em impressões reais (aumente se ainda cortar).
+const SAFE_MARGIN_Y = 40; // px @300dpi (~3.4mm) de cada lado (topo + base)
+
 // Draw one strip (photos + optional SVG frame overlay) onto a context at (ox, oy).
 async function drawStrip(
   ctx: CanvasRenderingContext2D,
@@ -70,16 +79,23 @@ async function drawStrip(
 ) {
   const sw = layout._stripSize?.w ?? layout.sheet.width;
   const sh = layout._stripSize?.h ?? layout.sheet.height;
+  const scale = (sh - SAFE_MARGIN_Y * 2) / sh;
+
+  ctx.save();
+  ctx.translate(ox, oy + SAFE_MARGIN_Y);
+  ctx.scale(1, scale);
 
   // Frame first (background), then photos on top in the slots
   if (layout._frameSvg) {
     const frame = await loadFrame(layout._frameSvg);
-    ctx.drawImage(frame, ox, oy, sw, sh);
+    ctx.drawImage(frame, 0, 0, sw, sh);
   }
 
   layout.cells.forEach((cell, i) => {
-    if (cells[i]) ctx.drawImage(cells[i], ox + cell.x, oy + cell.y, cell.w, cell.h);
+    if (cells[i]) ctx.drawImage(cells[i], cell.x, cell.y, cell.w, cell.h);
   });
+
+  ctx.restore();
 }
 
 // Assemble the full print sheet (10x15). mirror=true duplicates the strip.

@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { LayoutDashboard, LogIn } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,7 +38,10 @@ export function LoginForm() {
       >
         <Card className="shadow-xl shadow-primary/5">
           <CardHeader>
-            <CardTitle className="bg-gradient-to-r from-primary to-blue-700 bg-clip-text text-transparent">
+            <CardTitle className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
+                <LayoutDashboard className="h-4 w-4" />
+              </div>
               Fotozada · Admin
             </CardTitle>
           </CardHeader>
@@ -71,11 +75,8 @@ export function LoginForm() {
                   )}
                 />
                 <motion.div whileTap={{ scale: 0.98 }}>
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-primary to-blue-700 shadow-md shadow-primary/20"
-                    disabled={form.formState.isSubmitting}
-                  >
+                  <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                    <LogIn className="h-4 w-4" />
                     {form.formState.isSubmitting ? "Entrando…" : "Entrar"}
                   </Button>
                 </motion.div>

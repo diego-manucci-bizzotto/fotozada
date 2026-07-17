@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PartyPopper, Printer, Users } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { LAYOUTS } from "../../print/lib/layouts";
+import { PRINT_COMPLETE_DELAY_SECONDS } from "../../print/lib/print-timing";
 import { useBatchStatus } from "../../print/hooks/use-batch-status";
 import { useQueuePosition } from "../../print/hooks/use-queue-position";
 import type { JobStatus } from "../../print/types";
@@ -25,6 +27,15 @@ const BADGE_CLASS: Record<JobStatus, string> = {
   canceled: "bg-red-500/15 text-red-300/70 border-red-400/20",
 };
 
+// "3 fotos na frente" -> "~1min30s" — approximate, since a job already
+// printing may be partway through its own delay, not just starting it.
+function formatEstimate(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return s > 0 ? `${m}min ${s}s` : `${m}min`;
+}
+
 export function StatusStep({
   result,
   submitting,
@@ -47,11 +58,49 @@ export function StatusStep({
   }));
 
   const total = jobs.reduce((s, j) => s + j.copies, 0);
+  const statusesDone = jobs.length > 0 && jobs.every((j) => statuses[j.id] === "done");
+  // Gated on `!statusesDone`, not `!allDone` — allDone can become true purely
+  // from queueState below, and gating on it would disable this hook, reset
+  // queueState to null, flip allDone back to false, re-enable... a flicker loop.
+  const queueState = useQueuePosition(result?.batchId, !submitting && !statusesDone);
+  // Resuming a batch (after a refresh/tab close) seeds `statuses` from
+  // localStorage, not live data — if it already finished printing while the
+  // tab was closed, no Realtime broadcast will ever arrive to flip it to
+  // "done". `queue_position`'s `pending: false` is the fallback signal for
+  // that case (it can't distinguish "done" from "error", same as elsewhere).
+  const allDone = !submitting && jobs.length > 0 && (statusesDone || queueState?.pending === false);
+
+  // Once `allDone` is true via the queue_position fallback, `statuses` may
+  // still show stale non-terminal values (no broadcast ever arrived) —
+  // reconcile per-job display so badges/counts don't contradict the header.
+  function statusFor(jobId: string): JobStatus {
+    const raw = statuses[jobId] ?? "queued";
+    if (allDone && raw !== "error" && raw !== "canceled") return "done";
+    return raw;
+  }
+
   const done = jobs
-    .filter((j) => statuses[j.id] === "done")
+    .filter((j) => statusFor(j.id) === "done")
     .reduce((s, j) => s + j.copies, 0);
-  const allDone = !submitting && jobs.length > 0 && jobs.every((j) => statuses[j.id] === "done");
-  const queueAhead = useQueuePosition(result?.batchId, !submitting && !allDone);
+
+  // Estimated wait for people still queued behind this batch (2nd place or
+  // later) — not a countdown for this batch's own print. Derived from
+  // `ahead` (already live-polled via queue_position, robust to refresh —
+  // survives a fresh mount with no stale-value flash, since it's re-fetched
+  // from the DB, not read from localStorage) times the fixed per-print delay.
+  // `baseSeconds` is computed synchronously in render (not inside the effect)
+  // so the very first paint after `ahead` changes already shows the right
+  // number — only the "ticking down between polls" part needs an effect.
+  const ahead = queueState?.ahead ?? 0;
+  const baseSeconds = ahead * PRINT_COMPLETE_DELAY_SECONDS;
+  const [elapsedSinceSync, setElapsedSinceSync] = useState(0);
+  useEffect(() => {
+    setElapsedSinceSync(0);
+    if (ahead <= 0) return;
+    const id = setInterval(() => setElapsedSinceSync((e) => e + 1), 1000);
+    return () => clearInterval(id);
+  }, [ahead]);
+  const estimatedSeconds = Math.max(0, baseSeconds - elapsedSinceSync);
 
   return (
     <motion.div
@@ -82,7 +131,7 @@ export function StatusStep({
         </p>
       </div>
 
-      {queueAhead !== null && !allDone && (
+      {queueState?.pending && !allDone && (
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -91,12 +140,20 @@ export function StatusStep({
           <p className="flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300/80">
             <Users className="h-3.5 w-3.5" /> Sua vez na fila
           </p>
-          {queueAhead > 0 ? (
+          {queueState.ahead > 0 ? (
             <>
-              <p className="mt-1 text-4xl font-black text-amber-300">{queueAhead + 1}º</p>
+              <p className="mt-1 text-4xl font-black text-amber-300">{queueState.ahead + 1}º</p>
               <p className="text-xs text-white/50">
-                {queueAhead} {queueAhead === 1 ? "foto" : "fotos"} na sua frente
+                {queueState.ahead} {queueState.ahead === 1 ? "foto" : "fotos"} na sua frente
               </p>
+              <div className="mt-3 border-t border-amber-400/20 pt-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/70">
+                  Tempo estimado até a sua foto
+                </p>
+                <p className="mt-0.5 text-2xl font-black text-amber-300">
+                  {formatEstimate(estimatedSeconds)}
+                </p>
+              </div>
             </>
           ) : (
             <p className="mt-1.5 text-lg font-bold text-amber-300">É a sua vez!</p>
@@ -114,7 +171,7 @@ export function StatusStep({
       {!submitting && (
         <div className="w-full max-w-xs space-y-2">
           {jobs.map((j, i) => {
-            const st = statuses[j.id] ?? "queued";
+            const st = statusFor(j.id);
             return (
               <motion.div
                 key={j.id}
