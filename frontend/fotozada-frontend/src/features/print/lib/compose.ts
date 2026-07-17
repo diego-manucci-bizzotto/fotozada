@@ -62,12 +62,12 @@ export async function cropToCell(
   return canvas;
 }
 
-// A DNP RX1 corta uma faixa fixa da borda física da folha em modo borderless
-// (overscan do driver/feed) — independe de DPI ou opções do CUPS. Encolhemos
-// levemente o conteúdo no eixo Y e centralizamos, deixando uma margem de
-// segurança em branco que a impressora descarta em vez de cortar a arte.
-// Ajuste este valor com base em impressões reais (aumente se ainda cortar).
-const SAFE_MARGIN_Y = 40; // px @300dpi (~3.4mm) de cada lado (topo + base)
+// A DNP RX1 corta uma faixa fixa da borda física INFERIOR da folha em modo
+// borderless (overscan do driver/feed) — só a base, topo/laterais imprimem
+// certo. Encolhemos o conteúdo a partir da base (topo permanece intacto,
+// sem deslocar), deixando uma margem em branco que a impressora descarta em
+// vez de cortar a arte. Ajuste com base em impressões reais.
+export const PRINTER_CROP_BOTTOM = 34; // px @300dpi (~1.7mm)
 
 // Draw one strip (photos + optional SVG frame overlay) onto a context at (ox, oy).
 async function drawStrip(
@@ -79,10 +79,10 @@ async function drawStrip(
 ) {
   const sw = layout._stripSize?.w ?? layout.sheet.width;
   const sh = layout._stripSize?.h ?? layout.sheet.height;
-  const scale = (sh - SAFE_MARGIN_Y * 2) / sh;
+  const scale = (sh - PRINTER_CROP_BOTTOM) / sh;
 
   ctx.save();
-  ctx.translate(ox, oy + SAFE_MARGIN_Y);
+  ctx.translate(ox, oy);
   ctx.scale(1, scale);
 
   // Frame first (background), then photos on top in the slots

@@ -52,24 +52,32 @@ function drawCover(
 }
 
 // Desenha uma tira completa (fundo -> fotos -> overlay) no contexto em (ox, oy).
+// cropLeft/cropRight vêm explícitos de quem chama — no layout tirinha, cada
+// uma das 4 bordas laterais (externa-esquerda, costura-lado-1, costura-lado-2,
+// externa-direita) é independente e pode precisar de valores bem diferentes
+// (a costura no meio da folha não é simétrica na prática).
 async function drawStrip(
   ctx: CanvasRenderingContext2D,
   layout: RegalleLayoutDef,
   cells: HTMLCanvasElement[],
   ox: number,
   oy: number,
+  cropLeft: number,
+  cropRight: number,
 ) {
   const sw = layout._stripSize?.w ?? layout.sheet.width;
   const sh = layout._stripSize?.h ?? layout.sheet.height;
-  const scale = (sh - PRINTER_CROP_BOTTOM) / sh;
+  const cropBottom = layout._cropBottom ?? PRINTER_CROP_BOTTOM;
+  const scaleX = (sw - cropLeft - cropRight) / sw;
+  const scaleY = (sh - cropBottom) / sh;
 
   // Mesma compensação de overscan da DNP RX1 usada em print/lib/compose.ts —
-  // encolhe fundo, fotos e overlay juntos a partir da base (topo intacto),
-  // como uma unidade, para que a margem valha para todas as camadas sem
-  // desalinhar nada entre si.
+  // encolhe (ou sangra, se negativo) fundo, fotos e overlay juntos a partir
+  // das bordas configuradas, como uma unidade, para que a margem valha para
+  // todas as camadas sem desalinhar nada entre si.
   ctx.save();
-  ctx.translate(ox, oy);
-  ctx.scale(1, scale);
+  ctx.translate(ox + cropLeft, oy);
+  ctx.scale(scaleX, scaleY);
 
   if (layout._frameSvg) {
     const bg = await loadAsset(layout._frameSvg);
@@ -101,10 +109,24 @@ export async function composeSheet(
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  await drawStrip(ctx, layout, cells, 0, 0);
-
-  if (mirror && layout._mirrorX != null) {
-    await drawStrip(ctx, layout, cells, layout._mirrorX, 0);
+  if (layout._mirrorX != null) {
+    // Tirinha: 4 bordas laterais independentes — tira 1 usa a borda externa
+    // esquerda + seu lado da costura; tira 2 usa o outro lado da costura +
+    // a borda externa direita.
+    await drawStrip(ctx, layout, cells, 0, 0, layout._cropLeft ?? 0, layout._cropSeamLeft ?? 0);
+    if (mirror) {
+      await drawStrip(
+        ctx,
+        layout,
+        cells,
+        layout._mirrorX,
+        0,
+        layout._cropSeamRight ?? 0,
+        layout._cropRight ?? 0,
+      );
+    }
+  } else {
+    await drawStrip(ctx, layout, cells, 0, 0, layout._cropLeft ?? 0, layout._cropRight ?? 0);
   }
 
   return canvasToBlob(canvas, "image/png");
@@ -126,7 +148,7 @@ export async function composeStripPreview(
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, sw, sh);
 
-  await drawStrip(ctx, layout, cells, 0, 0);
+  await drawStrip(ctx, layout, cells, 0, 0, layout._cropLeft ?? 0, layout._cropSeamLeft ?? 0);
 
   return canvasToBlob(canvas, "image/png");
 }
