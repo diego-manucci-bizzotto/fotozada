@@ -28,15 +28,5 @@ export function useJobActions() {
     },
   });
 
-  const simulate = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.functions.invoke("simulate-printer", {
-        body: { kiosk_id: "kiosk-01" },
-      });
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-
-  return { setStatus, reprint, simulate };
+  return { setStatus, reprint };
 }

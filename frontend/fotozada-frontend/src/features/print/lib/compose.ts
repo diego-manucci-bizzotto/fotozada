@@ -44,6 +44,8 @@ export async function cropToCell(
   canvas.width = Math.round(outW);
   canvas.height = Math.round(outH);
   const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(

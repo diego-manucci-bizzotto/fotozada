@@ -1,20 +1,23 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-interface QueuePositionResult {
+export interface QueuePositionState {
   pending: boolean;
   ahead: number;
 }
 
-// Polls the queue_position RPC (capability = the unguessable batch id) and
-// returns how many jobs print before this batch — or null when the batch has
-// nothing pending (done / not yet deployed / error). Place in line = ahead + 1.
+// Polls the queue_position RPC (capability = the unguessable batch id).
+// Returns null until the first poll resolves (or while disabled) so callers
+// can tell "not checked yet" apart from "checked, nothing pending" — the
+// latter matters when resuming a batch after a refresh: if it already
+// finished printing while the tab was closed, no Realtime broadcast will
+// ever arrive to say so, so `pending: false` here is the only signal.
 export function useQueuePosition(batchId: string | undefined, enabled: boolean) {
-  const [ahead, setAhead] = useState<number | null>(null);
+  const [state, setState] = useState<QueuePositionState | null>(null);
 
   useEffect(() => {
     if (!batchId || !enabled) {
-      setAhead(null);
+      setState(null);
       return;
     }
     let active = true;
@@ -23,11 +26,10 @@ export function useQueuePosition(batchId: string | undefined, enabled: boolean) 
       const { data, error } = await supabase.rpc("queue_position", { p_batch_id: batchId });
       if (!active) return;
       if (error || !data) {
-        setAhead(null);
+        setState(null);
         return;
       }
-      const res = data as QueuePositionResult;
-      setAhead(res.pending ? res.ahead : null);
+      setState(data as QueuePositionState);
     }
 
     fetchPosition();
@@ -38,5 +40,5 @@ export function useQueuePosition(batchId: string | undefined, enabled: boolean) 
     };
   }, [batchId, enabled]);
 
-  return ahead;
+  return state;
 }

@@ -100,7 +100,7 @@ def embed_dpi(file_path: str, dpi: int = PRINT_DPI) -> None:
 
 LAYOUT_PAGE_SIZE = {
     "single_10x15":   "w288h432",
-    "strip_3":         "w288h432",   # já vem como folha 10x15 completa (2 tiras)
+    "strip_3":         "w288h432-div2",   # já vem como folha 10x15 completa (2 tiras)
     "single_10x15_v":  "w288h432",
     "single_10x15_h":  "w288h432",
 }

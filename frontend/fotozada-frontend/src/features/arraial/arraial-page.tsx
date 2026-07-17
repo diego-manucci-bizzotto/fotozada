@@ -6,6 +6,7 @@ import { useTotemSettings } from "../print/hooks/use-totem-settings";
 import { useSubmitBatch } from "../print/hooks/use-submit-batch";
 import type { JobStatus, LayoutDef, PhotoItem } from "../print/types";
 import type { BatchResult, FrameData, Step } from "./types";
+import { saveBatch, loadBatch, clearBatch } from "./lib/persisted-batch";
 import { StepIndicator } from "./components/step-indicator";
 import { WelcomeStep } from "./components/welcome-step";
 import { LayoutStep } from "./components/layout-step";
@@ -24,11 +25,15 @@ export function ArraialPage() {
   const maxSheets = settings.data?.max_sheets_per_batch ?? 5;
   const submit = useSubmitBatch();
 
-  const [step, setStep] = useState<Step>("welcome");
+  // A batch that was still printing survives a refresh/tab close — resume
+  // straight to the status screen instead of losing track of it.
+  const [initialResult] = useState<BatchResult | null>(loadBatch);
+
+  const [step, setStep] = useState<Step>(initialResult ? "status" : "welcome");
   const [layout, setLayout] = useState<LayoutDef | null>(null);
   const [frames, setFrames] = useState<FrameData[] | null>(null);
   const [items, setItems] = useState<PhotoItem[]>([]);
-  const [result, setResult] = useState<BatchResult | null>(null);
+  const [result, setResult] = useState<BatchResult | null>(initialResult);
   const [submitting, setSubmitting] = useState(false);
   const requestIdRef = useRef<string | null>(null);
 
@@ -59,12 +64,14 @@ export function ArraialPage() {
           return;
         }
         if (res.batch_id && res.job_ids) {
-          setResult({
+          const newResult: BatchResult = {
             batchId: res.batch_id,
             jobIds: res.job_ids,
             status: (res.status as JobStatus) ?? "queued",
-            items: allItems,
-          });
+            items: allItems.map((i) => ({ layout: i.layout, copies: i.copies })),
+          };
+          setResult(newResult);
+          saveBatch(newResult);
           setSubmitting(false);
         }
       })
@@ -79,6 +86,7 @@ export function ArraialPage() {
     items.forEach((i) => URL.revokeObjectURL(i.composedUrl));
     setItems([]);
     setResult(null);
+    clearBatch();
     requestIdRef.current = null;
     setLayout(null);
     setFrames(null);
