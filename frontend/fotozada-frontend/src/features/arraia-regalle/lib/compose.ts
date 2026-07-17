@@ -1,4 +1,4 @@
-import { cropToCell, canvasToBlob, sha256Hex } from "../../print/lib/compose";
+import { cropToCell, canvasToBlob, sha256Hex, PRINTER_CROP_BOTTOM } from "../../print/lib/compose";
 import type { RegalleLayoutDef } from "./layouts";
 
 // Reexportadas: utilitários genéricos sem lógica de evento (recorte, blob,
@@ -61,20 +61,31 @@ async function drawStrip(
 ) {
   const sw = layout._stripSize?.w ?? layout.sheet.width;
   const sh = layout._stripSize?.h ?? layout.sheet.height;
+  const scale = (sh - PRINTER_CROP_BOTTOM) / sh;
+
+  // Mesma compensação de overscan da DNP RX1 usada em print/lib/compose.ts —
+  // encolhe fundo, fotos e overlay juntos a partir da base (topo intacto),
+  // como uma unidade, para que a margem valha para todas as camadas sem
+  // desalinhar nada entre si.
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.scale(1, scale);
 
   if (layout._frameSvg) {
     const bg = await loadAsset(layout._frameSvg);
-    ctx.drawImage(bg, ox, oy, sw, sh);
+    ctx.drawImage(bg, 0, 0, sw, sh);
   }
 
   layout.cells.forEach((cell, i) => {
-    if (cells[i]) ctx.drawImage(cells[i], ox + cell.x, oy + cell.y, cell.w, cell.h);
+    if (cells[i]) ctx.drawImage(cells[i], cell.x, cell.y, cell.w, cell.h);
   });
 
   if (layout._overlaySvg) {
     const overlay = await loadAsset(layout._overlaySvg);
-    drawCover(ctx, overlay, ox, oy, sw, sh);
+    drawCover(ctx, overlay, 0, 0, sw, sh);
   }
+
+  ctx.restore();
 }
 
 // Monta a folha de impressão completa (10x15). mirror=true duplica a tira.

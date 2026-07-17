@@ -83,12 +83,12 @@ def download_file(url: str, dest: str) -> None:
 
 
 # O front compõe o PNG em pixels exatos para 300 DPI (ex: 1200x1800 = 4x6in),
-# mas o canvas do navegador não grava esse DPI no arquivo. Sem essa informação
-# o CUPS não sabe o tamanho físico real da imagem e precisa da opção
-# "fit-to-page" para preenchê-la — o que escala e corta as bordas (geralmente
-# embaixo) quando a área imprimível do driver não bate exatamente com o
-# PageSize nominal. Gravando o DPI real, o CUPS imprime em tamanho nativo,
-# sem escalar nem cortar nada.
+# mas o canvas do navegador não grava esse DPI no arquivo. "fit-to-page" (usado
+# em submit_to_cups) é necessário para a imagem cobrir a página inteira sem
+# sobrar margem nas laterais — sem essa opção o CUPS imprime em "tamanho
+# nativo" assumindo um DPI incorreto, deixando bordas brancas na folha.
+# O corte físico na base (overscan real da impressora) é compensado à parte,
+# no compose.ts do front (PRINTER_CROP_BOTTOM) — não tem relação com DPI/CUPS.
 PRINT_DPI = 300
 
 
@@ -120,6 +120,7 @@ def submit_to_cups(file_path: str, copies: int, layout: str) -> int:
         "-d", PRINTER_NAME,
         "-n", str(copies),
         "-o", f"PageSize={page_size}",
+        "-o", "fit-to-page",
         file_path,
     ]
     log.info(f"  Layout: {layout} → PageSize={page_size}, cópias={copies}")
