@@ -19,6 +19,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+from PIL import Image
 from supabase import create_async_client, AsyncClient
 
 try:
@@ -81,6 +82,22 @@ def download_file(url: str, dest: str) -> None:
     log.info(f"  Download: {size_kb} KB → {dest}")
 
 
+# O front compõe o PNG em pixels exatos para 300 DPI (ex: 1200x1800 = 4x6in),
+# mas o canvas do navegador não grava esse DPI no arquivo. Sem essa informação
+# o CUPS não sabe o tamanho físico real da imagem e precisa da opção
+# "fit-to-page" para preenchê-la — o que escala e corta as bordas (geralmente
+# embaixo) quando a área imprimível do driver não bate exatamente com o
+# PageSize nominal. Gravando o DPI real, o CUPS imprime em tamanho nativo,
+# sem escalar nem cortar nada.
+PRINT_DPI = 300
+
+
+def embed_dpi(file_path: str, dpi: int = PRINT_DPI) -> None:
+    img = Image.open(file_path)
+    img.save(file_path, dpi=(dpi, dpi))
+    log.info(f"  DPI embutido: {dpi}")
+
+
 LAYOUT_PAGE_SIZE = {
     "single_10x15":   "w288h432",
     "strip_3":         "w288h432",   # já vem como folha 10x15 completa (2 tiras)
@@ -103,7 +120,6 @@ def submit_to_cups(file_path: str, copies: int, layout: str) -> int:
         "-d", PRINTER_NAME,
         "-n", str(copies),
         "-o", f"PageSize={page_size}",
-        "-o", "fit-to-page",
         file_path,
     ]
     log.info(f"  Layout: {layout} → PageSize={page_size}, cópias={copies}")
@@ -244,6 +260,9 @@ async def process_job(job: dict) -> None:
 
             # 1. Download
             await loop.run_in_executor(None, download_file, url, tmp_path)
+
+            # 1b. Embute o DPI real — evita que o CUPS escale/corte a imagem
+            await loop.run_in_executor(None, embed_dpi, tmp_path)
 
             # 2. Envia ao CUPS — retorna job ID imediatamente
             cups_job_id = await loop.run_in_executor(
