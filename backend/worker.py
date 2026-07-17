@@ -19,7 +19,6 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-from PIL import Image
 from supabase import create_async_client, AsyncClient
 
 try:
@@ -80,22 +79,6 @@ def download_file(url: str, dest: str) -> None:
             f.write(response.read())
     size_kb = Path(dest).stat().st_size // 1024
     log.info(f"  Download: {size_kb} KB → {dest}")
-
-
-# O front compõe o PNG em pixels exatos para 300 DPI (ex: 1200x1800 = 4x6in),
-# mas o canvas do navegador não grava esse DPI no arquivo. "fit-to-page" (usado
-# em submit_to_cups) é necessário para a imagem cobrir a página inteira sem
-# sobrar margem nas laterais — sem essa opção o CUPS imprime em "tamanho
-# nativo" assumindo um DPI incorreto, deixando bordas brancas na folha.
-# O corte físico na base (overscan real da impressora) é compensado à parte,
-# no compose.ts do front (PRINTER_CROP_BOTTOM) — não tem relação com DPI/CUPS.
-PRINT_DPI = 300
-
-
-def embed_dpi(file_path: str, dpi: int = PRINT_DPI) -> None:
-    img = Image.open(file_path)
-    img.save(file_path, dpi=(dpi, dpi))
-    log.info(f"  DPI embutido: {dpi}")
 
 
 LAYOUT_PAGE_SIZE = {
@@ -261,9 +244,6 @@ async def process_job(job: dict) -> None:
 
             # 1. Download
             await loop.run_in_executor(None, download_file, url, tmp_path)
-
-            # 1b. Embute o DPI real — evita que o CUPS escale/corte a imagem
-            await loop.run_in_executor(None, embed_dpi, tmp_path)
 
             # 2. Envia ao CUPS — retorna job ID imediatamente
             cups_job_id = await loop.run_in_executor(
